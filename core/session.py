@@ -60,3 +60,5 @@ def reset_session_state():
     st.session_state.gpt_specialist_advice = ""
     st.session_state.asked_for_more_symptoms = False
     st.session_state.sidebar_last_update = ""
+    st.session_state.sidebar_container = None
+    st.session_state.clear()
