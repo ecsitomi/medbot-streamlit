@@ -197,6 +197,221 @@ def has_sufficient_data():
     
     return has_age and has_gender and has_symptoms and has_duration and has_severity
 
+def get_next_question_gpt():
+    """GPT alapú következő kérdés generálás a hiányzó adatok alapján."""
+    try:
+        data = st.session_state.patient_data
+        chat_history = st.session_state.chat_history
+        
+        # Hiányzó adatok azonosítása
+        missing_data = []
+        symptoms_count = len(data.get("symptoms", []))
+        
+        if symptoms_count == 0:
+            missing_data.append("symptoms")
+        elif symptoms_count == 1 and not st.session_state.asked_for_more_symptoms:
+            missing_data.append("additional_symptoms")
+        
+        if not data.get("duration"):
+            missing_data.append("duration")
+        if not data.get("severity"):
+            missing_data.append("severity")
+        if not data.get("age"):
+            missing_data.append("age")
+        if not data.get("gender"):
+            missing_data.append("gender")
+        if not data.get("existing_conditions"):
+            missing_data.append("existing_conditions")
+        if not data.get("medications"):
+            missing_data.append("medications")
+        
+        # Ha nincs hiányzó adat, akkor kész vagyunk
+        if not missing_data:
+            return "Köszönöm az összes információt! Most elkészítem az orvosi értékelést."
+        
+        # Kontextus építése a GPT számára
+        current_data_summary = []
+        if data.get("symptoms"):
+            current_data_summary.append(f"Tünetek: {', '.join(data['symptoms'])}")
+        if data.get("age"):
+            current_data_summary.append(f"Életkor: {data['age']} év")
+        if data.get("gender"):
+            current_data_summary.append(f"Nem: {data['gender']}")
+        if data.get("duration"):
+            current_data_summary.append(f"Időtartam: {data['duration']}")
+        if data.get("severity"):
+            current_data_summary.append(f"Súlyosság: {data['severity']}")
+        if data.get("existing_conditions"):
+            current_data_summary.append(f"Betegségek: {', '.join(data['existing_conditions'])}")
+        if data.get("medications"):
+            current_data_summary.append(f"Gyógyszerek: {', '.join(data['medications'])}")
+        
+        # Utolsó 3 üzenet a kontextushoz
+        recent_conversation = ""
+        if len(chat_history) > 1:
+            recent_messages = chat_history[-4:]  # Utolsó 4 üzenet (2 kör)
+            for msg in recent_messages:
+                role = "Asszisztens" if msg["role"] == "assistant" else "Páciens"
+                recent_conversation += f"{role}: {msg['content']}\n"
+        
+        # Prioritás meghatározása
+        priority_field = missing_data[0]
+        
+        # GPT prompt összeállítása
+        system_prompt = """Te egy tapasztalt egészségügyi asszisztens vagy, aki empátiával és szakértelemmel tesz fel kérdéseket a pácienseknek.
+
+FELADATOD: Természetes, barátságos kérdést generálni, ami pontosan EGY hiányzó adatot gyűjt be.
+
+SZABÁLYOK:
+1. Csak EGY adatot kérdezz meg egyszerre
+2. Légy empatikus és természetes
+3. Használd a kontextust és a korábbi beszélgetést
+4. Rövid, érthető kérdést tégy fel
+5. Ha szükséges, adj példákat a válaszhoz
+6. Magyar nyelven válaszolj
+
+ADATMEZŐK MAGYARÁZATA:
+- symptoms: Tünetek (fájdalom, diszkomfort, stb.)
+- additional_symptoms: További tünetek keresése az első után
+- duration: Tünetek időtartama (mióta tart)
+- severity: Súlyosság (enyhe/súlyos)
+- age: Életkor
+- gender: Nem (férfi/nő)
+- existing_conditions: Krónikus betegségek, allergiák
+- medications: Szedett gyógyszerek, vitaminok"""
+
+        user_prompt = f"""KONTEXTUS:
+Jelenlegi adataim a páciensről:
+{chr(10).join(current_data_summary) if current_data_summary else "Még nincsenek adatok"}
+
+Legutóbbi beszélgetés:
+{recent_conversation if recent_conversation else "Ez az első interakció"}
+
+KÖVETKEZŐ HIÁNYZÓ ADAT: {priority_field}
+
+Kérlek, tegyél fel EGY természetes kérdést, ami ezt az adatot gyűjti be. A kérdés legyen empatikus és a kontextushoz illő."""
+
+        # GPT hívás
+        response = client.chat.completions.create(
+            model="gpt-4",
+            messages=[
+                {"role": "system", "content": system_prompt},
+                {"role": "user", "content": user_prompt}
+            ],
+            temperature=0.7,
+            max_tokens=200
+        )
+        
+        generated_question = response.choices[0].message.content.strip()
+        
+        # Speciális tracking beállítása
+        if priority_field == "additional_symptoms":
+            st.session_state.asked_for_more_symptoms = True
+        
+        return generated_question
+        
+    except Exception as e:
+        st.error(f"Hiba a kérdés generálásában: {e}")
+        # Fallback az eredeti statikus kérdésre
+        return get_next_question_static()
+
+def get_next_question_static():
+    """Eredeti statikus kérdésgenerálás fallback-ként."""
+    data = st.session_state.patient_data
+    symptoms_count = len(data.get("symptoms", []))
+    
+    if symptoms_count == 0:
+        return "Kérem, írja le részletesen, milyen tünetei vannak. Mi fáj, vagy mit tapasztal?"
+    elif symptoms_count == 1 and not st.session_state.asked_for_more_symptoms:
+        st.session_state.asked_for_more_symptoms = True
+        return f"Köszönöm! Ezt a tünetet azonosítottam: {', '.join(data['symptoms'])}. Vannak-e további tünetei? Ha nincs több, írja be: 'nincs több'."
+    elif not data.get("duration"):
+        symptoms_text = ', '.join(data['symptoms']) if data['symptoms'] else 'a tüneteket'
+        return f"Köszönöm a tünetek leírását! Mióta tapasztalja {symptoms_text}? (például: 2 napja, 1 hete, 3 hónapja)"
+    elif not data.get("severity"):
+        return "Hogyan értékelné tünetei súlyosságát? Enyhének vagy súlyosnak minősítené őket?"
+    elif not data.get("age"):
+        return "Hány éves Ön? Ez segít a pontosabb értékelésben."
+    elif not data.get("gender"):
+        return "Kérem, adja meg a nemét (férfi/nő). Ez is fontos az értékeléshez."
+    elif not data.get("existing_conditions"):
+        return "Vannak-e ismert krónikus betegségei, allergiái vagy egyéb egészségügyi problémái? Ha nincs, írja be: 'nincs'."
+    elif not data.get("medications"):
+        return "Szed-e rendszeresen gyógyszereket vagy vitaminokat? Ha nem, írja be: 'nincs'."
+    else:
+        return "Köszönöm az összes információt! Most elkészítem az orvosi értékelést."
+
+def process_chat_input_enhanced(user_input):
+    """Továbbfejlesztett chat input feldolgozás GPT kérdésekkel."""
+    try:
+        # OpenAI function call próbálkozás (megtartjuk)
+        try:
+            response = client.chat.completions.create(
+                model="gpt-4",
+                messages=[
+                    {"role": "system", "content": "Te egy egészségügyi asszisztens vagy. Kinyered az egészségügyi adatokat a szövegből."},
+                    {"role": "user", "content": user_input}
+                ],
+                tools=[tool_schema],
+                tool_choice="auto"
+            )
+            
+            reply = response.choices[0].message
+            if hasattr(reply, 'tool_calls') and reply.tool_calls:
+                for tool_call in reply.tool_calls:
+                    if tool_call.function.name == "extract_medical_info":
+                        update_state_from_function_output(tool_call.function.arguments)
+        except:
+            pass
+        
+        # Manual extraction (megtartjuk)
+        manual_extract_info(user_input)
+        
+        # Speciális esetek kezelése
+        lower_input = user_input.lower()
+        if any(phrase in lower_input for phrase in ['nincs több', 'más nincs', 'semmi más', 'csak ennyi', 'nincs']):
+            st.session_state.asked_for_more_symptoms = True
+        
+        # Ellenőrizzük az állapotot
+        if has_sufficient_data():
+            if not st.session_state.triage_level:
+                # Értékelés indítása
+                data = st.session_state.patient_data
+                assistant_reply = "✅ Köszönöm! Összegyűjtöttem az adatokat:\n\n"
+                assistant_reply += f"• **Tünetek:** {', '.join(data.get('symptoms', []))}\n"
+                if data.get('duration'): assistant_reply += f"• **Időtartam:** {data['duration']}\n"
+                if data.get('severity'): assistant_reply += f"• **Súlyosság:** {data['severity']}\n"
+                if data.get('age'): assistant_reply += f"• **Életkor:** {data['age']} év\n"
+                if data.get('gender'): assistant_reply += f"• **Nem:** {data['gender']}\n"
+                
+                assistant_reply += "\n🔄 **Orvosi értékelés készítése...**"
+                
+                # Értékelések futtatása
+                st.session_state.triage_level = triage_decision(st.session_state.patient_data)
+                st.session_state.alt_therapy = alternative_recommendations(st.session_state.patient_data["symptoms"])
+                st.session_state.diagnosis = generate_diagnosis(st.session_state.patient_data["symptoms"])
+                st.session_state.gpt_alt_therapy = generate_alt_therapy(st.session_state.patient_data["symptoms"], st.session_state.diagnosis)
+                st.session_state.gpt_specialist_advice = generate_specialist_advice(st.session_state.patient_data["symptoms"], st.session_state.diagnosis)
+                
+                return assistant_reply
+            else:
+                return "Az orvosi értékelés már elkészült."
+        else:
+            # GPT alapú következő kérdés - EZ AZ ÚJ RÉSZ!
+            next_question = get_next_question_gpt()
+            
+            # Ha sikerült adatot kinyerni, megerősítjük
+            if st.session_state.patient_data.get('symptoms'):
+                symptoms = ', '.join(st.session_state.patient_data['symptoms'])
+                # Csak akkor teszünk hozzá megerősítést, ha még nincs benne
+                if "rögzítettem" not in next_question.lower() and "köszönöm" not in next_question.lower():
+                    next_question = f"Köszönöm! Rögzítettem: {symptoms}.\n\n{next_question}"
+            
+            return next_question
+
+    except Exception as e:
+        return f"Hiba történt: {str(e)}. Próbálja újra!"
+
 def get_next_question():
     """Meghatározza a következő kérdést a hiányzó adatok alapján."""
     data = st.session_state.patient_data
@@ -617,7 +832,7 @@ def main():
         # AI válasz generálása
         with st.chat_message("assistant"):
             with st.spinner("Elemzés folyamatban..."):
-                response = process_chat_input(prompt)
+                response = process_chat_input_enhanced(prompt)
                 st.markdown(response)
         
         # AI válasz hozzáadása a történethez
