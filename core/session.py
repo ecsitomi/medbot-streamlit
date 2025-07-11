@@ -62,3 +62,4 @@ def reset_session_state():
     st.session_state.sidebar_last_update = ""
     st.session_state.sidebar_container = None
     st.session_state.clear()
+    st.session_state.patient_data = DEFAULT_PATIENT_DATA.copy()

@@ -22,7 +22,7 @@ def main():
     if st.session_state.get("start_new_consultation", False):
         reset_session_state()
         st.session_state.start_new_consultation = False
-        st.experimental_rerun()  # vagy st.rerun()
+        st.rerun()
     
     # Session state inicializálás
     initialize_session_state()

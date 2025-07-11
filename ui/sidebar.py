@@ -127,7 +127,7 @@ def display_reset_button():
         st.session_state.gpt_specialist_advice = ""
         st.session_state.asked_for_more_symptoms = False
         st.session_state.start_new_consultation = True
-        st.experimental_rerun()
+        st.rerun()
 
 def create_dynamic_sidebar():
     """Dinamikusan frissülő sidebar."""
