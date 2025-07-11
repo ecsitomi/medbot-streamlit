@@ -9,8 +9,11 @@ from reportlab.lib.pagesizes import A4
 from reportlab.pdfgen import canvas
 from reportlab.lib.units import mm
 import os
+from dotenv import load_dotenv
 
 # OpenAI kliens inicializálása
+#load_dotenv()
+#client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
 client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
 # Streamlit konfiguráció
