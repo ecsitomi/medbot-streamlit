@@ -5,6 +5,7 @@
 Session state kezelés a medical chatbot számára.
 """
 import streamlit as st
+import copy
 from .config import WELCOME_MESSAGE, DEFAULT_PATIENT_DATA
 
 def initialize_session_state():
@@ -12,8 +13,11 @@ def initialize_session_state():
     if "chat_history" not in st.session_state:
         st.session_state.chat_history = [WELCOME_MESSAGE]
     
+    #if "patient_data" not in st.session_state:
+    #    st.session_state.patient_data = DEFAULT_PATIENT_DATA.copy()
+
     if "patient_data" not in st.session_state:
-        st.session_state.patient_data = DEFAULT_PATIENT_DATA.copy()
+        st.session_state.patient_data = copy.deepcopy(DEFAULT_PATIENT_DATA)
 
     if "triage_level" not in st.session_state:
         st.session_state.triage_level = ""
@@ -62,4 +66,4 @@ def reset_session_state():
     st.session_state.sidebar_last_update = ""
     st.session_state.sidebar_container = None
     st.session_state.clear()
-    st.session_state.patient_data = DEFAULT_PATIENT_DATA.copy()
+    st.session_state.patient_data = copy.deepcopy(DEFAULT_PATIENT_DATA)
