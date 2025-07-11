@@ -109,6 +109,7 @@ def display_export_options():
 def display_reset_button():
     """Új konzultáció gomb megjelenítése."""
     if st.button("🔄 Új konzultáció"):
+        reset_session_state()
         st.session_state.patient_data = {
             "age": None,
             "gender": None,
@@ -125,8 +126,8 @@ def display_reset_button():
         st.session_state.gpt_alt_therapy = ""
         st.session_state.gpt_specialist_advice = ""
         st.session_state.asked_for_more_symptoms = False
-        reset_session_state()
-        st.rerun()
+        st.session_state.start_new_consultation = True
+        st.experimental_rerun()
 
 def create_dynamic_sidebar():
     """Dinamikusan frissülő sidebar."""

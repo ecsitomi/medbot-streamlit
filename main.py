@@ -6,7 +6,7 @@ Medical Chatbot - Fő alkalmazás fájl
 Refaktorált verzió moduláris architektúrával.
 """
 import streamlit as st
-from core import initialize_session_state, STREAMLIT_CONFIG
+from core import initialize_session_state, reset_session_state, STREAMLIT_CONFIG
 from ui import create_dynamic_sidebar, create_chat_interface, create_medical_display
 
 def configure_streamlit():
@@ -17,6 +17,12 @@ def main():
     """Fő alkalmazás."""
     # Streamlit konfiguráció
     configure_streamlit()
+
+    # Új konzultáció indításának detektálása
+    if st.session_state.get("start_new_consultation", False):
+        reset_session_state()
+        st.session_state.start_new_consultation = False
+        st.experimental_rerun()  # vagy st.rerun()
     
     # Session state inicializálás
     initialize_session_state()
