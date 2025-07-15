@@ -23,6 +23,11 @@ from .chat_processor import (
     is_evaluation_complete,
     get_evaluation_status
 )
+from .symptom_graph import (
+    get_next_reasoning_question,
+    has_reasoning_questions_available
+)
+from .prompt_builder import build_complete_prompt
 
 __all__ = [
     'extract_all_medical_info',

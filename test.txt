@@ -1,0 +1,68 @@
+Üdvözlöm! Én egy egészségügyi asszisztens vagyok.
+
+Hogyan működik a konzultáció:
+
+📝 Először összegyűjtöm az összes szükséges információt Önről
+🔍 Majd elkészítem a részletes orvosi értékelést
+📄 Végül letöltheti az összefoglalót
+Kezdjük! Kérem, írja le, mi a panasza vagy milyen tünetei vannak.
+
+szia, fáj a fejem
+
+Értem, hogy fejfájás gyötri. Tudná pontosítani, hogy hol érzi a legnagyobb fájdalmat? A homlokán, a halántékán, vagy a tarkóján? Ez azért fontos, mert a fejfájás helye segíthet abban, hogy megtaláljuk a fájdalom mögött álló okot.
+
+homlokon
+
+Elnézést a sok kérdésért, de fontosak az információk a pontos diagnózishoz. A fejfájáson kívül érez még valamilyen további diszkomfortot vagy fájdalmat? Például szédül, vagy hányingere van?
+
+szédülök is
+
+Értem, hogy a fejfájás és a szédülés is nagyon zavaró lehet. Emlékszik rá, mióta érzi ezeket a tüneteket? Például pár napja kezdődtek, vagy már hetek óta vannak jelen? Az időtartam is segít nekünk jobban megérteni a helyzetét.
+
+3 napja tart
+
+Értem. Időtartam: 3 napja tart.
+
+Mennyire erősnek érzi ezeket a tüneteket? Például, enyhének, közepesen zavarónak vagy nagyon súlyosnak érzi a fejfájást és a szédülést? Ez nagyban segítene nekünk a helyzet további értékelésében.
+
+közepes
+
+Tudom, hogy a fejfájás és a szédülés nagyon megterhelő tud lenni. Mennyire intenzívnek érzi ezeket a tüneteket? Például, skálán 1-től 10-ig, hogyan értékelné a súlyosságukat?
+
+6
+
+Megértem, hogy a fejfájás és a szédülés nagyon zavaró tud lenni. Milyen súlyosságúnak érezné ezeket a tüneteket egy enyhe, közepes és súlyos skálán? Ez segítene nekünk abban, hogy pontosabban értékeljünk.
+
+közepes
+
+Megértem, hogy a fejfájás és a szédülés nagyon zavaró tud lenni. Mennyire súlyosnak érzi ezeket a tüneteket egy skálán, ahol az "enyhe" azt jelenti, hogy képes a mindennapi tevékenységeit folytatni, a "közepes" korlátozásokat jelent a tevékenységeiben, míg a "súlyos" elviselhetetlen fájdalmat és képtelenséget a mindennapi tevékenységekre?
+
+közepes
+
+Tudom, hogy a fejfájás és a szédülés nagyon zavaró lehet. Ha egy skálán kellene megjelölnie, ahol az "enyhe" azt jelenti, hogy a tünetek éppen csak észlelhetőek, a "közepes" azt, hogy a tünetek zavarják a mindennapi életét, és a "súlyos" azt, hogy a tünetek annyira intenzívek, hogy nem tudja folytatni a normális tevékenységeit, hol helyezkednének el a tünetei?
+
+enyh
+
+Elnézést, kicsit összezavarodtam. Hogy érzi, milyen súlyosak a fejfájása és a szédülése most, mondjuk egy skálán, ahol az "enyhe" azt jelenti, hogy éppen csak észreveszi, míg a "súlyos" azt, hogy nagyon zavaró és akadályozza a mindennapi tevékenységeit?
+
+enyhe
+
+Értem, köszönöm, hogy megosztotta velem a tüneteit. Ha nem bánja, szeretném tudni, hány éves? Ez segítene abban, hogy pontosabban értékeljük a helyzetét.
+
+34
+
+Értem. Életkor: 34.
+
+Szeretném pontosan értékelni a helyzetét, ezért ha nem bánja, megkérdezném, hogy Ön férfi vagy nő?
+
+ffi
+
+Köszönöm, hogy megosztotta velem. Egyébként, ha nem baj, szeretném még tudni, hogy ön nő vagy férfi? Ez segítene a pontosabb értékelésben.
+
+férfi
+
+✅ Köszönöm! Összegyűjtöttem az adatokat:
+
+• Tünetek: fejfájás, szédülés • Időtartam: 3 napja tart • Súlyosság: enyhe • Életkor: 34 év • Nem: férfi
+
+🔄 Orvosi értékelés készítése...

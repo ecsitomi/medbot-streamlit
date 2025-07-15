@@ -44,6 +44,9 @@ def initialize_session_state():
     if "sidebar_container" not in st.session_state:
         st.session_state.sidebar_container = None
 
+    if "negatives_logged" not in st.session_state:
+        st.session_state.negatives_logged = set()
+
 def reset_session_state():
     """Session state teljes visszaállítása új konzultációhoz."""
     # EXPLICIT reset minden mezőnek
@@ -67,3 +70,4 @@ def reset_session_state():
     st.session_state.sidebar_container = None
     st.session_state.clear()
     st.session_state.patient_data = copy.deepcopy(DEFAULT_PATIENT_DATA)
+    st.session_state.negatives_logged = set()

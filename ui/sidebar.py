@@ -64,6 +64,19 @@ def display_data_collection_status():
                     st.warning(f"⏳ {label}: {symptoms_count} tünet (folyamatban)")
                 else:
                     st.error(f"❌ {label}: Hiányzik")
+            
+            # ✅ ITT A JAVÍTÁS!
+            elif key in ["existing_conditions", "medications"]:
+                if isinstance(value, list) and len(value) > 0:
+                    if value == ["nincs"]:
+                        st.success(f"✅ {label}: Nincs")  # ← SZÉP MEGJELENÍTÉS
+                    else:
+                        st.success(f"✅ {label}: {', '.join(value)}")
+                    completed_fields += 1
+                else:
+                    st.error(f"❌ {label}: Hiányzik")
+            
+            # Többi mező (age, gender, duration, severity)
             else:
                 if value and value != "nincs":
                     st.success(f"✅ {label}")

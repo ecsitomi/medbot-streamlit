@@ -1,0 +1,168 @@
+🧾 Többszakaszos Product Requirements Document – Medical Chatbot Továbbfejlesztés
+✅ Fázis 1 – Red Flag tünetek azonosítása
+🎯 Cél
+Olyan kritikus tünetek felismerése, amelyek esetén kizárólag sürgős orvosi ellátást javasol a rendszer (pl. „eszméletvesztés”, „véres széklet”, „légszomj”).
+
+🔧 Funkciók
+Előre definiált „red flag” tünetlista
+
+GPT output + manuális elemzés során automatikus felismerés
+
+Bemeneti input szűrés logic/medical_analysis.py szintjén
+
+A triage értékelő logika elsőbbséget ad ezeknek
+
+✅ Elfogadási kritériumok
+Ha red flag tünet szerepel, más tanács nem adható (pl. alternatív terápia tiltása)
+
+A chatbot kizárólag azonnali orvosi ellátást javasol
+
+Az export fájlban jól látható figyelmeztetés jelenik meg
+
+✅ Fázis 2 – Orvosi guideline-alapú tanácsadás
+🎯 Cél
+A chatbot validált nemzetközi irányelvek (NICE, UpToDate) alapján adjon tanácsokat a tünetek kombinációja szerint.
+
+🔧 Funkciók
+Új guideline_engine.py modul (pl. logic/guideline_engine.py)
+
+Kézzel épített rule-based logika ismert esetekre (pl. „láz + köhögés = vírusos felső légúti fertőzés kezelési protokoll”)
+
+Később GPT finomhangolt prompttal kombinálható
+
+✅ Elfogadási kritériumok
+Legalább 5 gyakori tünetkombinációra adjon konkrét tanácsot (gyógyszermentes + ajánlott ellátás)
+
+Export dokumentumban jól elkülönül a guideline-alapú tanács
+
+✅ Fázis 3 – Orvoskereső integráció
+🎯 Cél
+A chatbot javaslat alapján felhasználót továbbirányítani egy helyi orvoshoz.
+
+🔧 Funkciók
+A specialist_advice mező alapján keresés (pl. „fül-orr-gégész” → Google Maps / Praxiskereső URL)
+
+Link beillesztése a UI-ba és exportba
+
+Opcionálisan: lokáció engedélyezése (ha mobilra költözik)
+
+✅ Elfogadási kritériumok
+A javasolt szakorvosi típus alapján működő keresőlink generálása
+
+Kattintható link jelenik meg az UI-ban és a PDF-ben
+
+✅ Fázis 4 – Előzmények mentése
+🎯 Cél
+A felhasználó konzultációi újra megtekinthetők legyenek (akár felhőből vagy lokálisan).
+
+🔧 Funkciók
+Konzultációk JSON formátumban automatikusan mentődnek localStorage vagy cookies alá
+
+Új modul: history_manager.py
+
+UI komponens: korábbi esetek listázása és betöltése
+
+✅ Elfogadási kritériumok
+A felhasználó betölthet egy korábbi esetet új konzultációként
+
+Legalább 3 eset lokálisan elmenthető, törölhető
+
+✅ Fázis 5 – Admin dashboard
+🎯 Cél
+Fejlesztők / adminok számára áttekinthetővé tenni, hogy a felhasználók hogyan használják az appot.
+
+🔧 Funkciók
+Új admin_dashboard.py modul (külön oldal Streamlit-en belül)
+
+Statikus metrikák (pl. hány konzultáció, hány tünet / esettípus, top 5 red flag)
+
+UX metrika: hol hagyják abba legtöbben a konzultációt (pl. nem válaszolnak a gyógyszerekre)
+
+✅ Elfogadási kritériumok
+Legalább 3 alapmetrika vizualizálása (bar chart / pie chart)
+
+Naplózott aktivitás JSON alapon (később bővíthető Firebase-zel)
+
+✅ Fázis 6 – Mobilalkalmazás
+🎯 Cél
+A chatbot mobilalkalmazásként is elérhető legyen, egyszerűbb hozzáférés és értesítések céljából.
+
+🔧 Funkciók
+Frontend: Flutter vagy React Native újraépítés a Streamlit UI alapján
+
+API backend leválasztása a logic/ és export/ modulokról
+
+Login + mentett konzultációk szinkronizálása
+
+Push értesítés kontrollvizsgálat emlékeztetőre
+
+✅ Elfogadási kritériumok
+A felhasználó bejelentkezik, új konzultációt indít, exportál, és kap push értesítést
+
+Minimum Android 10+ kompatibilitás, iOS (opcionálisan)
+
+--------------------------------------------------------------------
+
+🩺 Medical Chatbot – Továbbfejlesztési PRD (Confluence formátum)
+✅ 1. Red Flag tünetek azonosítása
+Cél
+Kritikus tünetek azonosítása (pl. eszméletvesztés, véres széklet), amelyek esetén kizárólag sürgős orvosi ellátást javasol a chatbot.
+
+Funkció	Leírás
+🔍 Red flag lista	Előre definiált tünetkulcsszavak	
+⚙️ Logika bővítése	triage_decision() kiegészítése red flag prioritással	
+🚫 Tanács tiltása	Alternatív tippek elnyomása red flag esetén	
+📄 Export jelölés	PDF-ben + JSON-ban figyelmeztetés szerepel	
+
+✅ 2. Orvosi guideline integráció
+Cél
+Validált protokollok alapján tanácsokat adni gyakori tünetkombinációkra (pl. láz + köhögés → otthoni megfigyelés, lázcsillapítás).
+
+Funkció	Leírás
+📚 Guideline engine	Új modul: guideline_engine.py	
+🤖 Rule-based matching	Fix szabályok 5–10 kombinációra	
+📤 Export integráció	Külön mező a guideline javaslatnak	
+🧪 Tesztkészlet	Minta esetekre várt guideline megoldás ellenőrzése	
+
+✅ 3. Orvoskereső integráció
+Cél
+A chatbot által javasolt szakorvos alapján lokalizált orvoskereső link megjelenítése.
+
+Funkció	Leírás
+🧭 Link generálás	Google Maps keresőlink: https://www.google.com/maps/search/{szak+orvos}	
+📍 Lokáció opció	(Később) GPS vagy beírt cím alapján pontosítás	
+🔗 UI integráció	Link a chat végén, exportban is szerepel	
+🧪 Validáció	A link kattintható és értelmes eredményre visz	
+
+✅ 4. Előzmények mentése
+Cél
+A felhasználók újra betölthessék korábbi konzultációikat.
+
+Funkció	Leírás
+🗂️ Lokális tárolás	localStorage vagy cookie alapú mentés	
+👤 Felhasználói mód	(Opcionális) egyszerű azonosító bevezetése	
+♻️ Újranyitás lehetősége	Korábbi export adat betöltése UI-n keresztül	
+🧽 Törlés opció	Előzmények egyenként vagy teljesen törölhetők	
+
+✅ 5. Admin dashboard
+Cél
+Áttekintést adni a használati mintákról és a rendszer gyenge pontjairól.
+
+Funkció	Leírás
+📊 Használati statisztika	Konzultációk száma, gyakori tünetek	
+⚠️ UX elemzés	Hol állnak meg a felhasználók? Melyik kérdés után?	
+📈 Metrikák vizualizálása	Streamlit oldalon: oszlopdiagram, kördiagram	
+🗃️ JSON log	Adatnaplózás későbbi bővítéshez (pl. Firebase)	
+
+✅ 6. Mobilalkalmazás (Flutter / React Native)
+Cél
+A chatbot elérhetővé tétele mobilon, jobb elérés és értesítési képességek érdekében.
+
+Funkció	Leírás
+📱 Natív UI	React Native vagy Flutter frontend	
+🔌 Backend API	A meglévő Python logic/ és export/ modulok REST API-vá alakítása	
+🔔 Push értesítés	Kontroll javaslat után időzített emlékeztető	
+🧪 Tesztelés	Android + iOS minimum támogatás: Android 10+, iOS 14+	
+
+
+

@@ -23,11 +23,22 @@ def has_sufficient_data():
     has_duration = data.get("duration") is not None and data.get("duration") != ""
     has_severity = data.get("severity") is not None and data.get("severity") != ""
     
+    # JAVÍTÁS: Krónikus betegségek - elfogadjuk az üres listát is, ha már megkérdeztük
+    has_existing_conditions = (
+        isinstance(data.get("existing_conditions"), list) and 
+        len(data["existing_conditions"]) > 0  # ← EGYSZERŰ: csak a hosszt nézzük
+    )
+
+    has_medications = (
+        isinstance(data.get("medications"), list) and 
+        len(data["medications"]) > 0  # ← EGYSZERŰ: csak a hosszt nézzük
+    )
+    
     # Tünetek: legalább 1 tünet kell, vagy ha már megkérdeztük a többit
     symptoms_count = len(data.get("symptoms", []))
     has_symptoms = symptoms_count >= 1 and (symptoms_count >= 2 or st.session_state.asked_for_more_symptoms)
     
-    return has_age and has_gender and has_symptoms and has_duration and has_severity
+    return has_age and has_gender and has_symptoms and has_duration and has_severity and has_existing_conditions and has_medications
 
 def update_state_from_function_output(output):
     """Function call output alapján frissíti a session state-t."""
@@ -47,9 +58,16 @@ def update_state_from_function_output(output):
                                 current_value.append(item)
                     else:
                         st.session_state.patient_data[key] = new_value
+                    
+                    # ÚJ: Ha üres lista jött vissza, jelöljük negatív válaszként
+                    if isinstance(new_value, list) and len(new_value) == 0:
+                        if key in ["existing_conditions", "medications"]:
+                            st.session_state.patient_data[key] = ["nincs"]
+                
                 else:
                     # Egyszerű mezők esetén csak akkor írjuk felül, ha nincs még érték
                     if not current_value:
                         st.session_state.patient_data[key] = new_value
+                        
     except Exception as e:
         st.error(f"Hiba a function output feldolgozásában: {e}")

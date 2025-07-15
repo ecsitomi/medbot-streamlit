@@ -3,6 +3,7 @@
 # =============================================================================
 """
 Konfigurációs beállítások és konstansok a medical chatbot számára.
+JAVÍTOTT VERZIÓ - "közepes" súlyosság hozzáadásával.
 """
 import os
 import streamlit as st
@@ -14,10 +15,8 @@ load_dotenv()  # Környezeti változók betöltése .env fájlból
 # OpenAI kliens inicializálása
 def get_openai_client():
     """OpenAI kliens létrehozása."""
-    return OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
-
-    #client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-    #return client
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    return client
 
 # Streamlit konfiguráció
 STREAMLIT_CONFIG = {
@@ -27,7 +26,7 @@ STREAMLIT_CONFIG = {
     "initial_sidebar_state": "auto"
 }
 
-# Tool schema az új OpenAI formátumban
+# Tool schema az új OpenAI formátumban - JAVÍTOTT VERZIÓ
 TOOL_SCHEMA = {
     "type": "function",
     "function": {
@@ -40,7 +39,7 @@ TOOL_SCHEMA = {
                 "gender": {"type": "string", "enum": ["férfi", "nő"], "description": "A páciens neme"},
                 "symptoms": {"type": "array", "items": {"type": "string"}, "description": "A páciens tünetei"},
                 "duration": {"type": "string", "description": "Tünetek időtartama (pl. 2 napja, 1 hete)"},
-                "severity": {"type": "string", "enum": ["enyhe", "súlyos"], "description": "Tünetek súlyossága"},
+                "severity": {"type": "string", "enum": ["enyhe", "közepes", "súlyos"], "description": "Tünetek súlyossága"},  
                 "existing_conditions": {"type": "array", "items": {"type": "string"}, "description": "Meglévő betegségek, allergiák"},
                 "medications": {"type": "array", "items": {"type": "string"}, "description": "Szedett gyógyszerek, vitaminok"}
             },
@@ -55,7 +54,8 @@ ALTERNATIVE_TIPS = {
     "torokfájás": "Langyos sós vizes gargalizálás és kamillatea enyhítheti a panaszokat.",
     "köhögés": "Mézes tea és párás levegő segíthet a köhögés csillapításában.",
     "hasfájás": "Borsmentatea vagy meleg borogatás nyugtathatja a hasat.",
-    "hányinger": "Gyömbéres tea vagy lassú, mély légzés csökkentheti a hányingert."
+    "hányinger": "Gyömbéres tea vagy lassú, mély légzés csökkentheti a hányingert.",
+    "szédülés": "Lassú mozgás, ülő vagy fekvő helyzet, és folyadékpótlás segíthet." 
 }
 
 # Alapértelmezett üdvözlő üzenet
