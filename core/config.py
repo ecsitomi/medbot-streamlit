@@ -15,7 +15,8 @@ load_dotenv()  # Környezeti változók betöltése .env fájlból
 # OpenAI kliens inicializálása
 def get_openai_client():
     """OpenAI kliens létrehozása."""
-    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    #client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
     return client
 
 # Streamlit konfiguráció
