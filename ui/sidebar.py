@@ -145,7 +145,7 @@ def display_reset_button():
 def create_dynamic_sidebar():
     """Dinamikusan frissülő sidebar."""
     with st.sidebar:
-        st.markdown("### ℹ️ Információk")
+        # st.markdown("### ℹ️ Információk")
         
         # Jogi nyilatkozatok
         create_legal_disclaimers()

@@ -6,6 +6,7 @@ Orvosi összefoglaló megjelenítése.
 """
 import streamlit as st
 from logic import is_evaluation_complete
+from medline_integration.integration import integrate_medline_to_medical_summary_wrapper
 
 def display_medical_summary():
     """Megjeleníti az orvosi összefoglalót."""
@@ -34,6 +35,12 @@ def display_medical_summary():
     # Szakorvos javaslat
     if st.session_state.gpt_specialist_advice:
         st.warning(f"**👨‍⚕️ Javasolt szakorvos:**\n{st.session_state.gpt_specialist_advice}")
+
+    # Medline integráció
+    integrate_medline_to_medical_summary_wrapper(
+        st.session_state.diagnosis, 
+        st.session_state.patient_data.get('symptoms', [])
+    )
 
 def display_patient_data_summary():
     """Páciens adatok összefoglalójának megjelenítése."""

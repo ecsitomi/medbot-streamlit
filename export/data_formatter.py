@@ -6,6 +6,7 @@ Adatok formázása exportáláshoz.
 """
 import datetime
 import streamlit as st
+from medline_integration.integration import add_medline_to_export_data
 
 def create_export_data():
     """Létrehozza az exportálandó adatokat."""
@@ -17,6 +18,9 @@ def create_export_data():
     export_data["gpt_alt_therapy"] = st.session_state.gpt_alt_therapy
     export_data["timestamp"] = datetime.datetime.now().isoformat()
     export_data["case_id"] = f"case-{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}"
+
+    export_data = add_medline_to_export_data(export_data)
+    
     return export_data
 
 def format_field_name(field_name):

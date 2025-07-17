@@ -8,6 +8,7 @@ Refaktorált verzió moduláris architektúrával.
 import streamlit as st
 from core import initialize_session_state, reset_session_state, STREAMLIT_CONFIG
 from ui import create_dynamic_sidebar, create_chat_interface, create_medical_display
+from medline_integration.integration import initialize_medline_integration
 
 def configure_streamlit():
     """Streamlit konfiguráció beállítása."""
@@ -17,6 +18,7 @@ def main():
     """Fő alkalmazás."""
     # Streamlit konfiguráció
     configure_streamlit()
+    initialize_medline_integration()
 
     # Új konzultáció indításának detektálása
     if st.session_state.get("start_new_consultation", False):
