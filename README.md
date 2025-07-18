@@ -1,103 +1,127 @@
 # Medical Chatbot - Egészségügyi Asszisztens
 
-Egy intelligens egészségügyi chatbot, amely GPT-4 alapon gyűjt orvosi adatokat, elemez és értékel.
+Egy intelligens egészségügyi chatbot, amely GPT-4 alapon képes strukturált orvosi adatgyűjtésre, triage döntések meghozatalára és személyre szabott tanácsadásra.
 
 ## Funkcionalitások
 
-- 🩺 Interaktív tünet-adatgyűjtés
-- 🤖 GPT-4 alapú intelligens kérdésgenerálás
-- 🏥 Automatikus triage döntések
-- 💊 Alternatív terápiás javaslatok
-- 👨‍⚕️ Szakorvos javaslatok
-- 📄 JSON és PDF export
+🩺 Interaktív tünet-adatgyűjtés
+🧩 Kontextusérzékeny adatkinyerés (GPT + regex)
+🔄 Dinamikus kérdésgenerálás reasoning logikával
+🤖 GPT-4 alapú diagnózis, terápia és szakorvos javaslat
+🏥 Triage döntés a tünetek súlyossága alapján
+📄 Eredmények exportja JSON és PDF formátumban
 
-## Projekt struktúra
+📁 Projekt Struktúra
 
-```
 medical_chatbot/
-├── main.py                    # Fő alkalmazás
-├── core/                      # Alapvető funkcionalitások
+├── main.py                         # Fő alkalmazás (Streamlit)
+├── core/                           # Alapvető funkcionalitások
 │   ├── __init__.py
-│   ├── config.py             # Konfigurációk és konstansok
-│   ├── session.py            # Session state kezelés
-│   └── utils.py              # Segédfunkciók
-├── logic/                     # Üzleti logika
+│   ├── config.py                   # Konfigurációk és konstansok
+│   ├── session.py                  # Session state kezelés
+│   └── utils.py                    # Segédfunkciók (pl. adatellenőrzés)
+├── logic/                          # Üzleti logika
 │   ├── __init__.py
-│   ├── data_extraction.py    # Orvosi adatok kinyerése
-│   ├── gpt_communication.py  # GPT kommunikáció
-│   ├── medical_analysis.py   # Orvosi elemzések
-│   └── chat_processor.py     # Chat feldolgozás
-├── ui/                        # Felhasználói felület
+│   ├── data_extraction.py          # Orvosi adatok kinyerése (GPT + kézi)
+│   ├── gpt_communication.py        # GPT diagnózis, terápia, kérdésgenerálás
+│   ├── medical_analysis.py         # Triage, alternatív javaslatok
+│   └── chat_processor.py           # Chat folyamatkezelés reasoning logikával
+├── ui/                             # Felhasználói felület
 │   ├── __init__.py
-│   ├── sidebar.py            # Sidebar komponensek
-│   ├── chat_interface.py     # Chat felület
-│   └── medical_summary.py    # Orvosi összefoglaló UI
-├── export/                    # Export funkcionalitások
+│   ├── sidebar.py                  # Dinamikus állapot és navigáció
+│   ├── chat_interface.py           # Interaktív chat UI
+│   └── medical_summary.py          # Összegző megjelenítése
+├── export/                         # Export funkcionalitások
 │   ├── __init__.py
-│   ├── data_formatter.py     # Adat formázás
-│   └── pdf_generator.py      # PDF generálás
-├── requirements.txt
-└── README.md
-```
+│   ├── data_formatter.py           # Export adatstruktúra formázás
+│   └── pdf_generator.py            # PDF generálás (egyszerű és strukturált)
+├── medline_integration/            # Egészségügyi edukációs modul
+│   ├── __init__.py
+│   ├── integration.py              # Export bővítése Medline tartalommal
+│   ├── api_client.py               # Külső Medline cikkek lekérése
+│   ├── ui_components.py            # Streamlit megjelenítés a felületen
+│   └── data_processor.py           # Lokális adatbázis feldolgozása
+├── medline_db.json                 # Lokális Medline tartalmak (opcionális)
+├── requirements.txt                # Függőségek telepítése
+└── README.md                       # Ezt olvasod
 
-## Telepítés
+🚀 Telepítés
+- Klónozd a repót:
+git clone https://github.com/felhasznalo/medical-chatbot.git
+cd medical-chatbot
 
-1. Klónozd a repository-t
-2. Telepítsd a függőségeket:
-```bash
+- Függőségek telepítése:
 pip install -r requirements.txt
-```
 
-3. Állítsd be az OpenAI API kulcsot a Streamlit secrets-ben vagy környezeti változóban
+- Állítsd be az OpenAI API kulcsot .env fájlban vagy secrets.toml fájlban.
+# core/config.py #
+client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
 
-## Futtatás
-
-```bash
+▶️ Futtatás
 streamlit run main.py
-```
 
-## Használat
+🧪 Használati folyamat
+1. Tünetek megadása – A chatbot kérdések segítségével begyűjti az életkort, nemet, tüneteket, időtartamot, stb.
 
-1. **Adatgyűjtés**: Az asszisztens interaktívan gyűjti össze a szükséges orvosi adatokat
-2. **Értékelés**: A rendszer automatikusan elkészíti az orvosi értékelést
-3. **Export**: Letölthető JSON vagy PDF formátumban az összefoglaló
+2. Értékelés – Az adatok alapján automatikusan történik:
 
-## Modulok
+- Triage besorolás
+- Laikus diagnózis generálása
+- Alternatív terápiás javaslatok (kézi és AI alapú)
+- Szakorvosi ajánlás
+- Értékelés a Medline Plus külső integrációból
 
-### Core
-- **config.py**: OpenAI konfiguráció, tool schema, konstansok
-- **session.py**: Streamlit session state kezelés
-- **utils.py**: Hash generálás, adatvalidáció
+3. Összefoglalás letöltése – JSON és PDF formában.
 
-### Logic
-- **data_extraction.py**: GPT és manuális adatkinyerés
-- **gpt_communication.py**: AI kommunikáció és kérdésgenerálás
-- **medical_analysis.py**: Triage döntések és orvosi elemzés
-- **chat_processor.py**: Chat folyamat vezérlés
+🔹 Külső integrációk
+- Medline Plus:
+Az export funkció automatikusan integrálja a Medline-ból származó hitelesített egészségügyi ismeretterjesztő leírásokat a tünetekhez és betegségekhez. Ezáltal a PDF vagy JSON export nemcsak diagnózist és javaslatokat tartalmaz, hanem további megbízható forrásokat is az önálló tájékozódáshoz.
 
-### UI
-- **sidebar.py**: Dinamikus sidebar és státusz
-- **chat_interface.py**: Chat felhasználói felület
-- **medical_summary.py**: Eredmények megjelenítése
+🧱 Modulok részletesen
 
-### Export
-- **data_formatter.py**: Export adatok formázása
-- **pdf_generator.py**: PDF dokumentum generálás
+🔹 Core
+config.py: OpenAI konfiguráció, tool schema, konstansek, üdvözlő üzenet
+session.py: Streamlit session state inicializálás és visszaállítás
+utils.py: Hash, adatellenőrzés, session state frissítés
 
-## Biztonsági megjegyzések
+🔹 Logic
+data_extraction.py: GPT + kézi adatkinyerés kontextus alapján (age, gender, symptoms stb.)
+chat_processor.py: Reasoning kérdéslogika, kontextusérzékeny párbeszédkezelés
+gpt_communication.py: Diagnózis, terápia, szakorvos javaslat generálása GPT-4 segítségével
+medical_analysis.py: Triage szintek meghatározása, alternatív ajánlások
 
-- Az alkalmazás nem minősül orvosi tanácsadásnak
-- Az adatokat nem tároljuk permanensen
-- GDPR kompatibilis adatkezelés
-- Csak tájékoztató célú használatra alkalmas
+🔹 Medline Integration
+integration.py: Vezérli az adatok feldúsítását, feldolgozást és a modul elemeit
+api_client.py: A külső egészségügyi források elérését biztosítja
+ui_components.py: Összegyűjtött eü. tartalom megjelenítése
+data_processor.py: Lokális Medline adatbázis feldolgozó logika
 
-## Fejlesztői információk
+🔹 UI
+chat_interface.py: Chat felület
+sidebar.py: Dinamikus státuszkijelzés, kérdésfolyamat vezérlés
+medical_summary.py: Vizsgálati eredmények megjelenítése
 
-- Python 3.8+
-- Streamlit framework
-- OpenAI GPT-4 API
-- ReportLab PDF generálás
+🔹 Export
+data_formatter.py: Eredmények formázása emberi olvashatóságra és export struktúrára
+pdf_generator.py: Egyszerű és szekcionált PDF generálás ReportLab-bal
 
-## Licenc
+📤 Export formátumok
+JSON: Strukturált export orvosi és metaadatokkal
+PDF: Hagyományos vagy fejlettebb szekciós PDF
 
+🛡️ Biztonság és Etika
+Nem nyújt hivatalos orvosi tanácsot
+Adatokat nem tárol véglegesen
+GDPR kompatibilis működés
+Csak tájékoztató célra használható
+
+⚙️ Technológiák
+Python 3.8+
+Streamlit – webes frontend
+OpenAI GPT-4 API
+Reportlab – PDF generálás
+dotenv – konfiguráció
+
+📄 Licenc
 MIT License
