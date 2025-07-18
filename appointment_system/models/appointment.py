@@ -1,8 +1,8 @@
 # =============================================================================
-# appointment_system/models/appointment.py - LAMBDA VERZIÓ
+# appointment_system/models/appointment.py - VÉGLEGES JAVÍTOTT VERZIÓ
 # =============================================================================
 """
-Időpont adatmodellek - Lambda verzió
+Időpont adatmodellek - VÉGLEGES javított verzió
 """
 from dataclasses import dataclass, field
 from datetime import datetime, timedelta
@@ -32,10 +32,11 @@ class PatientInfo:
 
 @dataclass
 class Appointment:
+    """VÉGLEGES Appointment modell - datetime field névvel"""
     id: str
     doctor_id: str
     patient_info: PatientInfo
-    start_time: datetime  # <-- új név, nem ütközik a datetime típussal
+    datetime: datetime  # ✅ VÉGLEGES: datetime field név mindenhol
     duration_minutes: int
     status: AppointmentStatus
     notes: str = ""
@@ -50,7 +51,7 @@ class Appointment:
     def generate_reference_number(self) -> str:
         import hashlib
         import random
-        hash_input = f"{self.doctor_id}{self.start_time.isoformat()}{random.randint(1000, 9999)}"
+        hash_input = f"{self.doctor_id}{self.datetime.isoformat()}{random.randint(1000, 9999)}"
         hash_obj = hashlib.md5(hash_input.encode())
         return f"APT-{hash_obj.hexdigest()[:8].upper()}"
     
@@ -58,7 +59,7 @@ class Appointment:
         return self.status.value
     
     def get_formatted_datetime(self) -> str:
-        return self.start_time.strftime("%Y. %m. %d. %H:%M")
+        return self.datetime.strftime("%Y. %m. %d. %H:%M")
     
     def get_end_datetime(self) -> datetime:
-        return self.start_time + timedelta(minutes=self.duration_minutes)
+        return self.datetime + timedelta(minutes=self.duration_minutes)

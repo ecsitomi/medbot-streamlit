@@ -8,6 +8,7 @@ MÓDOSÍTVA: Appointment system integráció hozzáadása - JAVÍTOTT IMPORT
 import streamlit as st
 from logic import is_evaluation_complete
 from medline_integration.integration import integrate_medline_to_medical_summary_wrapper
+from appointment_system.integration import integrate_appointment_booking
 
 # JAVÍTOTT IMPORT - helyes függvénynév
 try:

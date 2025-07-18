@@ -1,8 +1,8 @@
 # =============================================================================
-# medline_integration/ui_components.py
+# medline_integration/ui_components.py - JAVÍTOTT VERZIÓ
 # =============================================================================
 """
-Medline információk megjelenítése a Streamlit felületen.
+Medline információk megjelenítése a Streamlit felületen - JAVÍTOTT expander kezelés
 """
 import streamlit as st
 from typing import List, Dict, Any
@@ -12,7 +12,7 @@ import re
 
 class MedlineUI:
     """
-    Medline információk megjelenítésére szolgáló UI komponensek.
+    Medline információk megjelenítésére szolgáló UI komponensek - JAVÍTOTT VERZIÓ
     """
     
     def __init__(self):
@@ -21,13 +21,7 @@ class MedlineUI:
     def display_medline_section(self, diagnosis: str, symptoms: List[str], 
                                max_topics: int = 3, language: str = "en"):
         """
-        Fő Medline szekció megjelenítése az orvosi összefoglalóban.
-        
-        Args:
-            diagnosis (str): Diagnózis
-            symptoms (List[str]): Tünetek listája
-            max_topics (int): Maximum megjelenített témák száma
-            language (str): Nyelv (en/es)
+        Fő Medline szekció megjelenítése - JAVÍTOTT expander kezelés
         """
         if not diagnosis and not symptoms:
             return
@@ -50,14 +44,134 @@ class MedlineUI:
             st.warning("Nem találhatók releváns Medline Plus információk.")
             return
         
-        # Témák megjelenítése
-        self._display_topics(topics, max_topics)
+        # ✅ JAVÍTVA: Témák megjelenítése expander-ek nélkül
+        self._display_topics_fixed(topics, max_topics)
         
         # Disclaimer
         self._display_disclaimer()
     
+    def _display_topics_fixed(self, topics: List[MedlineTopicSummary], max_topics: int):
+        """JAVÍTOTT: Témák megjelenítése expander-ek nélkül"""
+        
+        for i, topic in enumerate(topics[:max_topics]):
+            # ✅ Container használata expander helyett
+            with st.container():
+                # Téma címe és alapinfók
+                st.markdown(f"#### 📖 {topic.title}")
+                
+                # Relevancia és link
+                col1, col2 = st.columns([3, 1])
+                
+                with col1:
+                    # Rövid leírás
+                    if topic.snippet:
+                        st.markdown(f"**Rövid leírás:** {topic.snippet}")
+                
+                with col2:
+                    # Relevancia pontszám
+                    st.metric("Relevancia", f"{topic.relevance_score:.1f}")
+                    
+                    # Medline Plus link
+                    if topic.url:
+                        st.markdown(f"🔗 [Medline Plus]({topic.url})")
+                
+                # ✅ JAVÍTVA: Részletek megjelenítése toggle gombbal
+                show_details_key = f"show_details_{i}"
+                if st.button(f"📋 Részletek megjelenítése/elrejtése", key=show_details_key):
+                    # Toggle state
+                    if f"details_visible_{i}" not in st.session_state:
+                        st.session_state[f"details_visible_{i}"] = False
+                    st.session_state[f"details_visible_{i}"] = not st.session_state[f"details_visible_{i}"]
+                
+                # Részletek megjelenítése ha látható
+                if st.session_state.get(f"details_visible_{i}", False):
+                    self._display_single_topic_fixed(topic)
+                
+                # Elválasztó vonal
+                if i < len(topics) - 1:
+                    st.markdown("---")
+    
+    def _display_single_topic_fixed(self, topic: MedlineTopicSummary):
+        """JAVÍTOTT: Egyetlen téma részletes megjelenítése expander-ek nélkül"""
+        
+        # Teljes összefoglaló
+        if topic.summary and topic.summary != topic.snippet:
+            st.markdown("**🔍 Részletes leírás:**")
+            summary_text = topic.summary
+            if len(summary_text) > 1000:
+                summary_text = summary_text[:1000] + "..."
+            st.markdown(summary_text)
+        
+        # Kategóriák és címkék
+        if topic.groups or topic.mesh_terms or topic.alt_titles:
+            st.markdown("**📂 Kategóriák és címkék:**")
+            
+            # Csoportok
+            if topic.groups:
+                groups_text = ", ".join(topic.groups)
+                st.markdown(f"📂 **Csoportok:** {groups_text}")
+            
+            # MeSH kifejezések
+            if topic.mesh_terms:
+                mesh_text = ", ".join(topic.mesh_terms)
+                st.markdown(f"🏷️ **MeSH:** {mesh_text}")
+            
+            # Alternatív címek
+            if topic.alt_titles:
+                alt_titles_text = ", ".join(topic.alt_titles)
+                st.markdown(f"🔄 **Alternatív címek:** {alt_titles_text}")
+        
+        # ✅ JAVÍTVA: Kulcsinformációk egyszerű megjelenítéssel
+        key_info = self.processor.extract_key_information(topic)
+        self._display_key_information_fixed(key_info)
+    
+    def _display_key_information_fixed(self, key_info: Dict[str, Any]):
+        """JAVÍTOTT: Kulcsinformációk megjelenítése expander-ek nélkül"""
+        if not any(key_info.values()):
+            return
+        
+        st.markdown("**💡 Kulcsinformációk:**")
+        
+        # ✅ JAVÍTVA: Egyszerű sections expander-ek helyett
+        
+        # Tünetek
+        if key_info.get('symptoms'):
+            st.markdown("**🩺 Tünetek:**")
+            for symptom in key_info['symptoms']:
+                st.markdown(f"• {symptom}")
+            st.markdown("")  # Üres sor
+        
+        # Okok
+        if key_info.get('causes'):
+            st.markdown("**🔍 Lehetséges okok:**")
+            for cause in key_info['causes']:
+                st.markdown(f"• {cause}")
+            st.markdown("")  # Üres sor
+        
+        # Kezelések
+        if key_info.get('treatments'):
+            st.markdown("**💊 Kezelések:**")
+            for treatment in key_info['treatments']:
+                st.markdown(f"• {treatment}")
+            st.markdown("")  # Üres sor
+        
+        # Megelőzés
+        if key_info.get('prevention'):
+            st.markdown("**🛡️ Megelőzés:**")
+            for prevention in key_info['prevention']:
+                st.markdown(f"• {prevention}")
+            st.markdown("")  # Üres sor
+        
+        # Mikor kell orvoshoz fordulni
+        if key_info.get('when_to_see_doctor'):
+            st.markdown("**⚠️ Mikor kell orvoshoz fordulni:**")
+            for advice in key_info['when_to_see_doctor']:
+                st.markdown(f"• {advice}")
+            st.markdown("")  # Üres sor
+    
+    # ✅ Meglévő metódusok változatlanul (expander-t nem használnak)
     def _prepare_search_terms(self, diagnosis: str, symptoms: List[str]) -> List[str]:
-        """Keresési kifejezések előkészítése."""
+        """Keresési kifejezések előkészítése - VÁLTOZATLAN"""
         search_terms = []
         
         # Diagnózis hozzáadása
@@ -74,7 +188,7 @@ class MedlineUI:
         return list(set(search_terms))  # Duplikátumok eltávolítása
     
     def _clean_diagnosis(self, diagnosis: str) -> str:
-        """Diagnózis tisztítása kereséshez."""
+        """Diagnózis tisztítása kereséshez - VÁLTOZATLAN"""
         # Felesleges szavak eltávolítása
         stop_words = ['lehetséges', 'valószínű', 'esetleg', 'talán', 'lehet', 'a', 'az', 'egy']
         
@@ -88,7 +202,7 @@ class MedlineUI:
         return cleaned if len(cleaned) > 2 else ''
     
     def _load_medline_data(self, search_terms: List[str], max_topics: int, language: str) -> List[MedlineTopicSummary]:
-        """Medline adatok betöltése és feldolgozása."""
+        """Medline adatok betöltése és feldolgozása - VÁLTOZATLAN"""
         try:
             client = MedlineAPIClient(language=language)
             
@@ -117,101 +231,8 @@ class MedlineUI:
             st.error(f"Hiba a Medline adatok betöltése során: {e}")
             return []
     
-    def _display_topics(self, topics: List[MedlineTopicSummary], max_topics: int):
-        """Témák megjelenítése."""
-        for i, topic in enumerate(topics[:max_topics]):
-            with st.expander(f"📖 {topic.title}", expanded=(i == 0)):
-                self._display_single_topic(topic)
-    
-    def _display_single_topic(self, topic: MedlineTopicSummary):
-        """Egyetlen téma részletes megjelenítése."""
-        # Alapinformációk
-        col1, col2 = st.columns([3, 1])
-        
-        with col1:
-            # Összefoglaló
-            if topic.snippet:
-                st.markdown(f"**Rövid leírás:** {topic.snippet}")
-            
-            # Teljes összefoglaló (ha van)
-            if topic.summary and topic.summary != topic.snippet:
-                st.markdown("**🔍 Részletes leírás:**")
-                    # Összefoglaló rövidítése, ha túl hosszú
-                summary_text = topic.summary
-                if len(summary_text) > 1000:
-                    summary_text = summary_text[:1000] + "..."
-                st.markdown(summary_text)
-        
-        with col2:
-            # Relevancia pontszám
-            st.metric("Relevancia", f"{topic.relevance_score:.1f}")
-            
-            # Medline Plus link
-            if topic.url:
-                st.markdown(f"🔗 [Medline Plus]({topic.url})")
-        
-        # Kategóriák és címkék
-        if topic.groups or topic.mesh_terms or topic.alt_titles:
-            st.markdown("**Kategóriák és címkék:**")
-            
-            # Csoportok
-            if topic.groups:
-                groups_text = ", ".join(topic.groups)
-                st.markdown(f"📂 **Csoportok:** {groups_text}")
-            
-            # MeSH kifejezések
-            if topic.mesh_terms:
-                mesh_text = ", ".join(topic.mesh_terms)
-                st.markdown(f"🏷️ **MeSH:** {mesh_text}")
-            
-            # Alternatív címek
-            if topic.alt_titles:
-                alt_titles_text = ", ".join(topic.alt_titles)
-                st.markdown(f"🔄 **Alternatív címek:** {alt_titles_text}")
-        
-        # Kulcsinformációk kinyerése
-        key_info = self.processor.extract_key_information(topic)
-        self._display_key_information(key_info)
-    
-    def _display_key_information(self, key_info: Dict[str, Any]):
-        """Kulcsinformációk megjelenítése."""
-        if not any(key_info.values()):
-            return
-        
-        st.markdown("**Kulcsinformációk:**")
-        
-        # Tünetek
-        if key_info.get('symptoms'):
-            with st.expander("🩺 Tünetek"):
-                for symptom in key_info['symptoms']:
-                    st.markdown(f"• {symptom}")
-        
-        # Okok
-        if key_info.get('causes'):
-            with st.expander("🔍 Lehetséges okok"):
-                for cause in key_info['causes']:
-                    st.markdown(f"• {cause}")
-        
-        # Kezelések
-        if key_info.get('treatments'):
-            with st.expander("💊 Kezelések"):
-                for treatment in key_info['treatments']:
-                    st.markdown(f"• {treatment}")
-        
-        # Megelőzés
-        if key_info.get('prevention'):
-            with st.expander("🛡️ Megelőzés"):
-                for prevention in key_info['prevention']:
-                    st.markdown(f"• {prevention}")
-        
-        # Mikor kell orvoshoz fordulni
-        if key_info.get('when_to_see_doctor'):
-            with st.expander("⚠️ Mikor kell orvoshoz fordulni"):
-                for advice in key_info['when_to_see_doctor']:
-                    st.markdown(f"• {advice}")
-    
     def _display_disclaimer(self):
-        """Jogi disclaimer megjelenítése."""
+        """Jogi disclaimer megjelenítése - VÁLTOZATLAN"""
         st.markdown("---")
         st.info("""
         **📚 Medline Plus információk:** 
@@ -222,12 +243,12 @@ class MedlineUI:
         """)
 
 # =============================================================================
-# Kiegészítő UI komponensek
+# Kiegészítő UI komponensek - JAVÍTOTT
 # =============================================================================
 
 class MedlineSearchWidget:
     """
-    Interaktív Medline keresés widget.
+    Interaktív Medline keresés widget - JAVÍTOTT expander kezelés
     """
     
     def __init__(self):
@@ -235,7 +256,7 @@ class MedlineSearchWidget:
         self.processor = MedlineDataProcessor()
     
     def display_search_interface(self):
-        """Keresési interfész megjelenítése."""
+        """Keresési interfész megjelenítése - JAVÍTOTT"""
         st.markdown("### 🔍 Medline Plus Keresés")
         
         # Keresési forma
@@ -254,10 +275,10 @@ class MedlineSearchWidget:
             submitted = st.form_submit_button("🔍 Keresés")
         
         if submitted and search_term:
-            self._perform_search(search_term, max_results, language[1])
+            self._perform_search_fixed(search_term, max_results, language[1])
     
-    def _perform_search(self, search_term: str, max_results: int, language: str):
-        """Keresés végrehajtása és eredmények megjelenítése."""
+    def _perform_search_fixed(self, search_term: str, max_results: int, language: str):
+        """JAVÍTOTT: Keresés végrehajtása expander-ek nélkül"""
         with st.spinner("Keresés folyamatban..."):
             try:
                 client = MedlineAPIClient(language=language)
@@ -272,23 +293,50 @@ class MedlineSearchWidget:
                     results, [search_term], search_term
                 )
                 
-                # Eredmények megjelenítése
+                # ✅ JAVÍTVA: Eredmények megjelenítése expander-ek nélkül
                 st.success(f"Találatok száma: {len(topics)}")
                 
                 ui = MedlineUI()
-                for topic in topics:
-                    with st.expander(f"📖 {topic.title}"):
-                        ui._display_single_topic(topic)
+                ui._display_topics_fixed(topics, len(topics))
                         
             except Exception as e:
                 st.error(f"Hiba a keresés során: {e}")
 
 # =============================================================================
-# Segédfüggvények
+# Javított segédfüggvények
 # =============================================================================
 
+def add_medline_sidebar_options():
+    """JAVÍTOTT: Medline opciók hozzáadása a sidebar-hoz expander nélkül"""
+    with st.sidebar:
+        st.markdown("### 🏥 Medline Plus Beállítások")
+        
+        # Kapcsolat állapot
+        display_medline_connection_status()
+        
+        # Medline keresés engedélyezése
+        enable_medline = st.checkbox("Medline Plus keresés engedélyezése", value=True)
+        
+        if enable_medline:
+            st.markdown("**⚙️ Keresési beállítások:**")
+            
+            max_topics = st.slider("Maximum témák száma:", 1, 10, 3)
+            language = st.selectbox("Keresési nyelv:", [("Angol", "en"), ("Spanyol", "es")], index=0)
+            relevance_threshold = st.slider("Relevancia küszöb:", 1.0, 10.0, 3.0, 0.5)
+            cache_enabled = st.checkbox("Cache engedélyezése", value=True)
+            
+            # Beállítások mentése session state-be
+            st.session_state.medline_enabled = True
+            st.session_state.medline_max_topics = max_topics
+            st.session_state.medline_language = language[1]
+            st.session_state.medline_relevance_threshold = relevance_threshold
+            st.session_state.medline_cache_enabled = cache_enabled
+        else:
+            st.session_state.medline_enabled = False
+
+# ✅ Többi függvény változatlan
 def display_medline_connection_status():
-    """Medline kapcsolat állapotának megjelenítése."""
+    """Medline kapcsolat állapotának megjelenítése - VÁLTOZATLAN"""
     try:
         from .api_client import test_medline_connection
         
@@ -300,7 +348,7 @@ def display_medline_connection_status():
         st.error(f"❌ Medline Plus kapcsolat hiba: {e}")
 
 def create_medline_export_data(topics: List[MedlineTopicSummary]) -> Dict[str, Any]:
-    """Medline adatok exportálási formátumba alakítása."""
+    """Medline adatok exportálási formátumba alakítása - VÁLTOZATLAN"""
     export_data = {
         'medline_topics': [topic.to_dict() for topic in topics],
         'total_topics': len(topics),
@@ -310,15 +358,9 @@ def create_medline_export_data(topics: List[MedlineTopicSummary]) -> Dict[str, A
     
     return export_data
 
-# =============================================================================
-# Medline integráció a meglévő medical_summary.py-ba
-# =============================================================================
-
 def integrate_medline_to_medical_summary(diagnosis: str, symptoms: List[str]):
     """
-    Medline szekció integrálása a meglévő medical_summary.py-ba.
-    
-    Ezt a függvényt hívd meg a display_medical_summary() végén.
+    Medline szekció integrálása a meglévő medical_summary.py-ba - VÁLTOZATLAN
     """
     # Ellenőrizzük, hogy van-e diagnosis vagy symptoms
     if not diagnosis and not symptoms:
@@ -327,35 +369,3 @@ def integrate_medline_to_medical_summary(diagnosis: str, symptoms: List[str]):
     # Medline UI létrehozása és megjelenítése
     medline_ui = MedlineUI()
     medline_ui.display_medline_section(diagnosis, symptoms)
-
-# =============================================================================
-# Streamlit sidebar integráció
-# =============================================================================
-
-def add_medline_sidebar_options():
-    """Medline opciók hozzáadása a sidebar-hoz."""
-    with st.sidebar:
-        # Teljes Medline szekció egy expander-ben
-        with st.expander("🏥 Medline Plus Keresés"):
-            # Kapcsolat állapot
-            display_medline_connection_status()
-            
-            # Medline keresés engedélyezése
-            enable_medline = st.checkbox("Medline Plus keresés engedélyezése", value=True)
-            
-            if enable_medline:
-                st.markdown("**⚙️ Keresési beállítások:**")
-                
-                max_topics = st.slider("Maximum témák száma:", 1, 10, 3)
-                language = st.selectbox("Keresési nyelv:", [("Angol", "en"), ("Spanyol", "es")], index=0)
-                relevance_threshold = st.slider("Relevancia küszöb:", 1.0, 10.0, 3.0, 0.5)
-                cache_enabled = st.checkbox("Cache engedélyezése", value=True)
-                
-                # Beállítások mentése session state-be
-                st.session_state.medline_enabled = True
-                st.session_state.medline_max_topics = max_topics
-                st.session_state.medline_language = language[1]
-                st.session_state.medline_relevance_threshold = relevance_threshold
-                st.session_state.medline_cache_enabled = cache_enabled
-            else:
-                st.session_state.medline_enabled = False

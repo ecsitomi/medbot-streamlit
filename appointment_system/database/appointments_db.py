@@ -67,7 +67,7 @@ class AppointmentsDatabase:
             print("📁 Új appointments.json fájl lesz létrehozva")
     
     def _json_to_appointment(self, data: Dict[str, Any]) -> Appointment:
-        """JSON adat konvertálása Appointment objektummá"""
+        """JSON adat konvertálása Appointment objektummá - JAVÍTOTT VÉGLEGESEN"""
         
         # PatientInfo rekonstruálás
         patient_data = data.get('patient_info', {})
@@ -83,12 +83,12 @@ class AppointmentsDatabase:
             medications=patient_data.get('medications', [])
         )
         
-        # Appointment rekonstruálás
+        # ✅ JAVÍTVA: datetime field név konzisztensen
         appointment = Appointment(
             id=data['id'],
             doctor_id=data['doctor_id'],
             patient_info=patient_info,
-            datetime=datetime.fromisoformat(data['datetime']),
+            datetime=datetime.fromisoformat(data['datetime']),  # ✅ datetime field
             duration_minutes=data['duration_minutes'],
             status=AppointmentStatus(data['status']),
             notes=data.get('notes', ''),
@@ -96,11 +96,11 @@ class AppointmentsDatabase:
             updated_at=datetime.fromisoformat(data['updated_at']),
             reference_number=data.get('reference_number', '')
         )
-        
+    
         return appointment
     
     def _appointment_to_json(self, appointment: Appointment) -> Dict[str, Any]:
-        """Appointment objektum konvertálása JSON-ba"""
+        """Appointment objektum konvertálása JSON-ba - JAVÍTOTT VÉGLEGESEN"""
         return {
             'id': appointment.id,
             'doctor_id': appointment.doctor_id,
@@ -115,7 +115,7 @@ class AppointmentsDatabase:
                 'medical_history': appointment.patient_info.medical_history,
                 'medications': appointment.patient_info.medications
             },
-            'datetime': appointment.datetime.isoformat(),
+            'datetime': appointment.datetime.isoformat(),  # ✅ datetime field
             'duration_minutes': appointment.duration_minutes,
             'status': appointment.status.value,
             'notes': appointment.notes,
@@ -315,7 +315,7 @@ class AppointmentsDatabase:
         return available_slots
     
     def _has_time_conflict(self, appointment: Appointment, exclude_id: Optional[str] = None) -> bool:
-        """Időpont ütközés ellenőrzése"""
+        """Időpont ütközés ellenőrzése - JAVÍTOTT VÉGLEGESEN"""
         doctor_appointments = self.get_appointments_by_doctor(appointment.doctor_id)
         
         for existing_appointment in doctor_appointments:
@@ -325,7 +325,7 @@ class AppointmentsDatabase:
             if existing_appointment.status == AppointmentStatus.CANCELLED:
                 continue
             
-            # Időpont ütközés ellenőrzése
+            # ✅ JAVÍTVA: datetime field név használata
             if existing_appointment.datetime == appointment.datetime:
                 return True
         

@@ -9,3 +9,7 @@ typing-extensions>=4.0.0
 requests>=2.31.0        # API hívások
 urllib3>=1.26.0         # HTTP support
 lxml>=4.9.0             # XML parsing (opcionális)
+
+#Adatkezelés
+pandas>=2.0.0       # CSV export és admin oldal DataFrame
+numpy>=1.24.0       # pandas dependency

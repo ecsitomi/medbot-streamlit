@@ -1,8 +1,8 @@
 # =============================================================================
-# appointment_system/logic/availability_checker.py
+# appointment_system/logic/availability_checker.py - JAVÍTOTT VERZIÓ
 # =============================================================================
 """
-Szabad időpontok ellenőrzése és generálása
+Szabad időpontok ellenőrzése és generálása - JAVÍTOTT VERZIÓ
 """
 import streamlit as st
 from datetime import datetime, timedelta, date, time
@@ -11,14 +11,14 @@ from ..models.doctor import Doctor
 from ..models.appointment import Appointment
 
 class AvailabilityChecker:
-    """Szabad időpontok ellenőrzése"""
+    """Szabad időpontok ellenőrzése - JAVÍTOTT VERZIÓ"""
     
     def __init__(self):
         self.booked_appointments: Dict[str, List[Appointment]] = {}
         self._initialize_sample_bookings()
     
     def _initialize_sample_bookings(self):
-        """Minta foglalások létrehozása (szimuláció)"""
+        """JAVÍTOTT: Minta foglalások létrehozása (szimuláció)"""
         # Néhány random foglalás létrehozása a realisztikusság érdekében
         from ..models.appointment import PatientInfo, AppointmentStatus
         
@@ -26,18 +26,18 @@ class AvailabilityChecker:
             # Dr. Kovács János foglalásai
             {
                 "doctor_id": "doc_001",
-                "datetime": datetime(2024, 1, 15, 10, 0),
+                "appointment_datetime": datetime(2024, 1, 15, 10, 0),  # ✅ JAVÍTVA: datetime-ról appointment_datetime-ra
                 "patient_name": "Minta Páciens"
             },
             {
                 "doctor_id": "doc_001", 
-                "datetime": datetime(2024, 1, 15, 14, 30),
+                "appointment_datetime": datetime(2024, 1, 15, 14, 30),  # ✅ JAVÍTVA
                 "patient_name": "Teszt Páciens"
             },
             # Dr. Nagy Éva foglalásai
             {
                 "doctor_id": "doc_002",
-                "datetime": datetime(2024, 1, 16, 11, 0),
+                "appointment_datetime": datetime(2024, 1, 16, 11, 0),  # ✅ JAVÍTVA
                 "patient_name": "Próba Páciens"
             }
         ]
@@ -51,11 +51,12 @@ class AvailabilityChecker:
                 email="test@example.com"
             )
             
+            # ✅ JAVÍTVA: datetime field név használata
             appointment = Appointment(
-                id=f"sample_{booking['doctor_id']}_{booking['datetime'].strftime('%Y%m%d%H%M')}",
+                id=f"sample_{booking['doctor_id']}_{booking['appointment_datetime'].strftime('%Y%m%d%H%M')}",
                 doctor_id=booking["doctor_id"],
                 patient_info=patient_info,
-                datetime=booking["datetime"],
+                datetime=booking["appointment_datetime"],  # ✅ JAVÍTVA: datetime field név
                 duration_minutes=30,
                 status=AppointmentStatus.CONFIRMED
             )
@@ -66,14 +67,7 @@ class AvailabilityChecker:
     
     def get_available_slots(self, doctor: Doctor, selected_date: date) -> List[time]:
         """
-        Szabad időpontok lekérése egy adott napra
-        
-        Args:
-            doctor: Orvos
-            selected_date: Kiválasztott dátum
-            
-        Returns:
-            List[time]: Elérhető időpontok
+        Szabad időpontok lekérése egy adott napra - VÁLTOZATLAN
         """
         # Munkaidő lekérése
         weekday = selected_date.strftime("%A").lower()
@@ -97,7 +91,7 @@ class AvailabilityChecker:
         return available_slots
     
     def _generate_all_slots(self, doctor: Doctor, working_hours) -> List[time]:
-        """Összes lehetséges időpont generálása"""
+        """Összes lehetséges időpont generálása - VÁLTOZATLAN"""
         slots = []
         duration = doctor.appointment_duration
         
@@ -128,7 +122,7 @@ class AvailabilityChecker:
         return slots
     
     def _get_booked_slots(self, doctor_id: str, selected_date: date) -> List[time]:
-        """Foglalt időpontok lekérése"""
+        """Foglalt időpontok lekérése - VÁLTOZATLAN"""
         booked_slots = []
         
         if doctor_id in self.booked_appointments:
@@ -139,7 +133,7 @@ class AvailabilityChecker:
         return booked_slots
     
     def _is_slot_available(self, slot: time, selected_date: date) -> bool:
-        """Időpont elérhetőségének ellenőrzése"""
+        """Időpont elérhetőségének ellenőrzése - VÁLTOZATLAN"""
         slot_datetime = datetime.combine(selected_date, slot)
         
         # Múltbeli időpontok nem elérhetők
@@ -154,13 +148,7 @@ class AvailabilityChecker:
     
     def book_appointment(self, appointment: Appointment) -> bool:
         """
-        Időpont foglalása
-        
-        Args:
-            appointment: Foglalandó időpont
-            
-        Returns:
-            bool: Sikeres volt-e a foglalás
+        Időpont foglalása - VÁLTOZATLAN
         """
         doctor_id = appointment.doctor_id
         
@@ -176,7 +164,7 @@ class AvailabilityChecker:
         return True
     
     def _is_appointment_available(self, appointment: Appointment) -> bool:
-        """Foglalás elérhetőségének ellenőrzése"""
+        """Foglalás elérhetőségének ellenőrzése - VÁLTOZATLAN"""
         doctor_id = appointment.doctor_id
         appointment_time = appointment.datetime.time()
         appointment_date = appointment.datetime.date()
@@ -192,15 +180,7 @@ class AvailabilityChecker:
     
     def get_doctor_schedule(self, doctor_id: str, start_date: date, end_date: date) -> Dict[str, List[Dict]]:
         """
-        Orvos teljes programjának lekérése
-        
-        Args:
-            doctor_id: Orvos ID
-            start_date: Kezdő dátum
-            end_date: Befejező dátum
-            
-        Returns:
-            Dict: Napi bontásban a program
+        Orvos teljes programjának lekérése - VÁLTOZATLAN
         """
         schedule = {}
         

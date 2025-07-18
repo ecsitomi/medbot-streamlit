@@ -1,29 +1,26 @@
 # =============================================================================
-# appointment_system/ui/appointment_booking.py
+# appointment_system/ui/appointment_booking.py - JAVÍTOTT VERZIÓ
 # =============================================================================
 """
-Időpont foglalás UI komponens
+Időpont foglalás UI komponens - JAVÍTOTT VERZIÓ
 """
 import streamlit as st
 from datetime import datetime, timedelta, date, time
 from typing import List, Optional
 from ..models.doctor import Doctor
 from ..models.appointment import Appointment, AppointmentStatus, PatientInfo
+from ..logic.appointment_logic import AppointmentManager  # ← ÚJ IMPORT
 
 class AppointmentBookingUI:
-    """Időpont foglalás UI komponens"""
+    """Időpont foglalás UI komponens - JAVÍTOTT VERZIÓ"""
+    
+    def __init__(self):
+        self.appointment_manager = AppointmentManager()  # ← ÚJ MANAGER
     
     def display_appointment_booking(self, doctor: Doctor, 
                                   patient_data: dict) -> Optional[Appointment]:
         """
-        Időpont foglalás UI megjelenítése
-        
-        Args:
-            doctor: Kiválasztott orvos
-            patient_data: Páciens adatok
-            
-        Returns:
-            Optional[Appointment]: Létrehozott időpont
+        Időpont foglalás UI megjelenítése - JAVÍTOTT VERZIÓ
         """
         st.markdown("### 📅 Időpont Foglalás")
         
@@ -51,26 +48,91 @@ class AppointmentBookingUI:
         if not patient_info:
             return None
         
-        # Foglalás megerősítése
-        appointment = self._display_booking_confirmation(
+        # JAVÍTOTT: Foglalás megerősítése AppointmentManager-rel
+        appointment = self._display_booking_confirmation_fixed(
             doctor, selected_datetime, patient_info
         )
         
         return appointment
     
-    def _display_date_selection(self, doctor: Doctor) -> Optional[date]:
-        """Dátum kiválasztás"""
+    def _display_booking_confirmation_fixed(self, doctor: Doctor, 
+                                          selected_datetime: datetime,
+                                          patient_info: PatientInfo) -> Optional[Appointment]:
+        """JAVÍTOTT: Foglalás megerősítése AppointmentManager használatával"""
         
+        st.markdown("#### ✅ Foglalás Megerősítése")
+        
+        # Összegzés
+        st.info(f"""
+        **Foglalás részletei:**
+        
+        • **Orvos:** {doctor.get_display_name()} - {doctor.get_specialization_hu()}
+        • **Dátum:** {selected_datetime.strftime('%Y. %m. %d. %H:%M')}
+        • **Időtartam:** {doctor.appointment_duration} perc
+        • **Páciens:** {patient_info.name}
+        • **Telefon:** {patient_info.phone}
+        • **Email:** {patient_info.email}
+        """)
+        
+        # Megerősítés gomb
+        if st.button("🎯 Időpont foglalása", type="primary"):
+            
+            # ✅ JAVÍTOTT: AppointmentManager használata
+            with st.spinner("Foglalás feldolgozása..."):
+                booking_result = self.appointment_manager.book_appointment(
+                    doctor_id=doctor.id,
+                    appointment_datetime=selected_datetime,
+                    patient_info=patient_info,
+                    notes=f"Automatikus foglalás a medical chatbot rendszerből."
+                )
+            
+            if booking_result['success']:
+                appointment = booking_result['appointment']
+                
+                # Session state frissítése
+                st.session_state.appointment_data = {
+                    "selected_doctor": doctor,
+                    "selected_datetime": selected_datetime,
+                    "appointment": appointment,
+                    "booking_status": "confirmed"
+                }
+                
+                # Sikeres foglalás üzenet
+                st.success(f"""
+                🎉 **Sikeres foglalás!**
+                
+                Referencia szám: **{appointment.reference_number}**
+                
+                Egy megerősítő emailt küldtünk a {patient_info.email} címre.
+                """)
+                
+                # ✅ DEBUG INFORMÁCIÓ
+                st.info(f"📁 **Debug:** Foglalás mentve a data/appointments.json fájlba!")
+                
+                return appointment
+            else:
+                # Hiba esetén
+                st.error("❌ **Foglalás sikertelen!**")
+                for error in booking_result['errors']:
+                    st.error(f"• {error}")
+                
+                for warning in booking_result['warnings']:
+                    st.warning(f"⚠️ {warning}")
+                
+                return None
+        
+        return None
+    
+    # ... (többi metódus változatlan)
+    def _display_date_selection(self, doctor: Doctor) -> Optional[date]:
+        """Dátum kiválasztás - VÁLTOZATLAN"""
         st.markdown("#### 📆 Dátum kiválasztás")
         
-        # Következő 30 nap
         today = date.today()
         max_date = today + timedelta(days=30)
         
-        # Elérhető napok az orvos munkaideje alapján
         available_days = [wh.day for wh in doctor.working_hours]
         
-        # Dátum input
         selected_date = st.date_input(
             "Válasszon dátumot:",
             min_value=today,
@@ -79,7 +141,6 @@ class AppointmentBookingUI:
             key="appointment_date"
         )
         
-        # Ellenőrzés, hogy dolgozik-e az orvos aznap
         weekday = selected_date.strftime("%A").lower()
         
         if weekday not in available_days:
@@ -89,11 +150,9 @@ class AppointmentBookingUI:
         return selected_date
     
     def _display_time_selection(self, doctor: Doctor, selected_date: date) -> Optional[time]:
-        """Időpont kiválasztás"""
-        
+        """Időpont kiválasztás - VÁLTOZATLAN"""
         st.markdown("#### 🕐 Időpont kiválasztás")
         
-        # Munkaidő lekérése
         weekday = selected_date.strftime("%A").lower()
         working_hours = doctor.get_working_hours_for_day(weekday)
         
@@ -101,14 +160,12 @@ class AppointmentBookingUI:
             st.error("Nincs munkaidő információ erre a napra.")
             return None
         
-        # Elérhető időpontok generálása
         available_times = self._generate_available_times(doctor, working_hours)
         
         if not available_times:
             st.error("Nincs elérhető időpont erre a napra.")
             return None
         
-        # Időpont kiválasztás
         time_options = [t.strftime("%H:%M") for t in available_times]
         
         selected_time_str = st.selectbox(
@@ -117,53 +174,43 @@ class AppointmentBookingUI:
             key="appointment_time"
         )
         
-        # String to time konverzió
         hour, minute = map(int, selected_time_str.split(':'))
         selected_time = time(hour, minute)
         
         return selected_time
     
     def _generate_available_times(self, doctor: Doctor, working_hours) -> List[time]:
-        """Elérhető időpontok generálása"""
-        
+        """Elérhető időpontok generálása - VÁLTOZATLAN"""
         times = []
         duration = doctor.appointment_duration
         
-        # Kezdő és befejező idő
         start_time = working_hours.start_time
         end_time = working_hours.end_time
-        
-        # Szünet ideje
         break_start = working_hours.break_start
         break_end = working_hours.break_end
         
-        # Időpontok generálása
         current_time = start_time
         
         while current_time < end_time:
-            # Ellenőrzés, hogy van-e elég idő a rendelésre
             appointment_end = datetime.combine(date.today(), current_time) + timedelta(minutes=duration)
             appointment_end_time = appointment_end.time()
             
             if appointment_end_time > end_time:
                 break
             
-            # Szünet ellenőrzése
             if break_start and break_end:
                 if not (current_time >= break_start and current_time < break_end):
                     times.append(current_time)
             else:
                 times.append(current_time)
             
-            # Következő időpont
             next_time = datetime.combine(date.today(), current_time) + timedelta(minutes=duration)
             current_time = next_time.time()
         
         return times
     
     def _display_patient_info_form(self, patient_data: dict) -> Optional[PatientInfo]:
-        """Páciens adatok kiegészítése"""
-        
+        """Páciens adatok kiegészítése - VÁLTOZATLAN"""
         st.markdown("#### 👤 Páciens Adatok")
         
         with st.form("patient_info_form"):
@@ -182,7 +229,6 @@ class AppointmentBookingUI:
                                     index=0 if patient_data.get('gender') == 'férfi' else 1,
                                     key="patient_gender")
             
-            # Automatikusan kitöltött mezők
             symptoms = patient_data.get('symptoms', [])
             diagnosis = patient_data.get('diagnosis', '')
             existing_conditions = patient_data.get('existing_conditions', [])
@@ -197,12 +243,10 @@ class AppointmentBookingUI:
             submitted = st.form_submit_button("✅ Adatok megerősítése")
         
         if submitted:
-            # Validáció
             if not all([name, phone, email]):
                 st.error("Kérjük töltse ki az összes kötelező mezőt!")
                 return None
             
-            # PatientInfo objektum létrehozása
             patient_info = PatientInfo(
                 name=name,
                 age=age,
@@ -216,58 +260,5 @@ class AppointmentBookingUI:
             )
             
             return patient_info
-        
-        return None
-    
-    def _display_booking_confirmation(self, doctor: Doctor, 
-                                    selected_datetime: datetime,
-                                    patient_info: PatientInfo) -> Optional[Appointment]:
-        """Foglalás megerősítése"""
-        
-        st.markdown("#### ✅ Foglalás Megerősítése")
-        
-        # Összegzés
-        st.info(f"""
-        **Foglalás részletei:**
-        
-        • **Orvos:** {doctor.get_display_name()} - {doctor.get_specialization_hu()}
-        • **Dátum:** {selected_datetime.strftime('%Y. %m. %d. %H:%M')}
-        • **Időtartam:** {doctor.appointment_duration} perc
-        • **Páciens:** {patient_info.name}
-        • **Telefon:** {patient_info.phone}
-        • **Email:** {patient_info.email}
-        """)
-        
-        # Megerősítés gomb
-        if st.button("🎯 Időpont foglalása", type="primary"):
-            # Appointment létrehozása
-            appointment = Appointment(
-                id=f"apt_{datetime.now().strftime('%Y%m%d%H%M%S')}",
-                doctor_id=doctor.id,
-                patient_info=patient_info,
-                datetime=selected_datetime,
-                duration_minutes=doctor.appointment_duration,
-                status=AppointmentStatus.PENDING,
-                notes=f"Automatikus foglalás a medical chatbot rendszerből."
-            )
-            
-            # Session state-be mentés
-            st.session_state.appointment_data = {
-                "selected_doctor": doctor,
-                "selected_datetime": selected_datetime,
-                "appointment": appointment,
-                "booking_status": "confirmed"
-            }
-            
-            # Sikeres foglalás üzenet
-            st.success(f"""
-            🎉 **Sikeres foglalás!**
-            
-            Referencia szám: **{appointment.reference_number}**
-            
-            Egy megerősítő emailt küldtünk a {patient_info.email} címre.
-            """)
-            
-            return appointment
         
         return None
