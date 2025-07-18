@@ -1,12 +1,21 @@
 # =============================================================================
-# export/data_formatter.py
+# export/data_formatter.py - JAVÍTOTT VERZIÓ
 # =============================================================================
 """
 Adatok formázása exportáláshoz.
+MÓDOSÍTVA: Appointment adatok hozzáadása - JAVÍTOTT IMPORT
 """
 import datetime
 import streamlit as st
 from medline_integration.integration import add_medline_to_export_data
+
+# JAVÍTOTT IMPORT - helyes függvénynév
+try:
+    from appointment_system.integration import add_appointment_to_export_data
+except ImportError:
+    # Fallback, ha az appointment system nincs telepítve
+    def add_appointment_to_export_data(export_data):
+        return export_data
 
 def create_export_data():
     """Létrehozza az exportálandó adatokat."""
@@ -19,7 +28,11 @@ def create_export_data():
     export_data["timestamp"] = datetime.datetime.now().isoformat()
     export_data["case_id"] = f"case-{datetime.datetime.now().strftime('%Y%m%d%H%M%S')}"
 
+    # Medline adatok hozzáadása
     export_data = add_medline_to_export_data(export_data)
+    
+    # JAVÍTOTT: Appointment adatok hozzáadása - helyes függvénynév
+    export_data = add_appointment_to_export_data(export_data)
     
     return export_data
 
@@ -39,7 +52,9 @@ def format_field_name(field_name):
         "alt_therapy": "Alternatív terápia",
         "gpt_alt_therapy": "AI alternatív terápia",
         "timestamp": "Időbélyeg",
-        "case_id": "Eset azonosító"
+        "case_id": "Eset azonosító",
+        # Appointment mezők
+        "appointment": "Időpont foglalás"
     }
     return field_mappings.get(field_name, field_name.replace('_', ' ').title())
 
@@ -84,7 +99,8 @@ def create_structured_export():
                 "manual": export_data.get("alt_therapy"),
                 "ai_generated": export_data.get("gpt_alt_therapy")
             }
-        }
+        },
+        "appointment_data": export_data.get("appointment", {})
     }
     
     return structured_data

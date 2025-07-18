@@ -1,14 +1,23 @@
 # =============================================================================
-# ui/sidebar.py
+# ui/sidebar.py - JAVÍTOTT VERZIÓ
 # =============================================================================
 """
 Sidebar komponensek és adatgyűjtés státusz.
+MÓDOSÍTVA: Appointment státusz megjelenítése - JAVÍTOTT IMPORT
 """
 import streamlit as st
 import json
 from core import get_data_hash, reset_session_state
 from logic import is_evaluation_complete
 from export import create_export_data, generate_pdf
+
+# JAVÍTOTT IMPORT - helyes függvénynév
+try:
+    from appointment_system.integration import get_appointment_integration_status
+except ImportError:
+    # Fallback, ha az appointment system nincs telepítve
+    def get_appointment_integration_status():
+        return {"has_appointment": False, "appointment_details": {}}
 
 def create_legal_disclaimers():
     """Jogi nyilatkozatok megjelenítése."""
@@ -24,6 +33,21 @@ def create_legal_disclaimers():
         A megadott adatokat nem tároljuk és nem továbbítjuk harmadik fél számára. 
         Az alkalmazás célja kizárólag a felhasználó önálló tájékozódásának támogatása. 
         Az adatokat kizárólag az aktuális munkamenet során, ideiglenesen használjuk fel.
+        """)
+
+def display_appointment_status():
+    """Appointment státusz megjelenítése"""
+    appointment_status = get_appointment_integration_status()
+    
+    if appointment_status["has_appointment"]:
+        st.markdown("### 📅 Foglalás Státusz")
+        appointment_details = appointment_status["appointment_details"]
+        
+        st.success(f"""
+        ✅ **Aktív foglalás**
+        
+        **Referencia:** {appointment_details.get('reference_number', 'N/A')}
+        **Orvos:** {appointment_details.get('doctor_name', 'N/A')}
         """)
 
 def display_data_collection_status():
@@ -65,18 +89,16 @@ def display_data_collection_status():
                 else:
                     st.error(f"❌ {label}: Hiányzik")
             
-            # ✅ ITT A JAVÍTÁS!
             elif key in ["existing_conditions", "medications"]:
                 if isinstance(value, list) and len(value) > 0:
                     if value == ["nincs"]:
-                        st.success(f"✅ {label}: Nincs")  # ← SZÉP MEGJELENÍTÉS
+                        st.success(f"✅ {label}: Nincs")
                     else:
                         st.success(f"✅ {label}: {', '.join(value)}")
                     completed_fields += 1
                 else:
                     st.error(f"❌ {label}: Hiányzik")
             
-            # Többi mező (age, gender, duration, severity)
             else:
                 if value and value != "nincs":
                     st.success(f"✅ {label}")
@@ -126,13 +148,12 @@ def display_reset_button():
         st.session_state.patient_data = {
             "age": None,
             "gender": None,
-            "symptoms": [],  # <-- Ez volt a probléma!
+            "symptoms": [],
             "duration": None,
             "severity": None,
             "existing_conditions": [],
             "medications": []
         }
-        #st.session_state.chat_history = [get_welcome_message()]
         st.session_state.triage_level = ""
         st.session_state.alt_therapy = ""
         st.session_state.diagnosis = ""
@@ -145,8 +166,6 @@ def display_reset_button():
 def create_dynamic_sidebar():
     """Dinamikusan frissülő sidebar."""
     with st.sidebar:
-        # st.markdown("### ℹ️ Információk")
-        
         # Jogi nyilatkozatok
         create_legal_disclaimers()
         
@@ -154,6 +173,10 @@ def create_dynamic_sidebar():
         status_container = st.empty()
         with status_container.container():
             display_data_collection_status()
+        
+        # Appointment státusz
+        if is_evaluation_complete():
+            display_appointment_status()
         
         # Exportálás opciók
         display_export_options()

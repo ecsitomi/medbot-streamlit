@@ -9,6 +9,7 @@ import streamlit as st
 from core import initialize_session_state, reset_session_state, STREAMLIT_CONFIG
 from ui import create_dynamic_sidebar, create_chat_interface, create_medical_display
 from medline_integration.integration import initialize_medline_integration
+from admin_page import display_data_overview, display_appointments_table
 
 def configure_streamlit():
     """Streamlit konfiguráció beállítása."""
@@ -40,6 +41,14 @@ def main():
     
     # Orvosi összefoglaló megjelenítése
     create_medical_display()
+
+    # Sidebar-ban admin tab
+    if st.sidebar.button("🔧 Admin"):
+        st.session_state.page = "admin"
+    
+    if st.session_state.get('page') == 'admin':
+        display_data_overview()
+        display_appointments_table()
 
 if __name__ == "__main__":
     main()

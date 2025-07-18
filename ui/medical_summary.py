@@ -1,12 +1,21 @@
 # =============================================================================
-# ui/medical_summary.py
+# ui/medical_summary.py - JAVÍTOTT VERZIÓ
 # =============================================================================
 """
 Orvosi összefoglaló megjelenítése.
+MÓDOSÍTVA: Appointment system integráció hozzáadása - JAVÍTOTT IMPORT
 """
 import streamlit as st
 from logic import is_evaluation_complete
 from medline_integration.integration import integrate_medline_to_medical_summary_wrapper
+
+# JAVÍTOTT IMPORT - helyes függvénynév
+try:
+    from appointment_system.integration import integrate_appointment_booking
+except ImportError:
+    # Fallback, ha az appointment system nincs telepítve
+    def integrate_appointment_booking(gpt_specialist_advice, patient_data, diagnosis):
+        pass
 
 def display_medical_summary():
     """Megjeleníti az orvosi összefoglalót."""
@@ -40,6 +49,13 @@ def display_medical_summary():
     integrate_medline_to_medical_summary_wrapper(
         st.session_state.diagnosis, 
         st.session_state.patient_data.get('symptoms', [])
+    )
+
+    # JAVÍTOTT: Appointment system integráció - helyes függvénynév
+    integrate_appointment_booking(
+        st.session_state.gpt_specialist_advice,
+        st.session_state.patient_data,
+        st.session_state.diagnosis
     )
 
 def display_patient_data_summary():

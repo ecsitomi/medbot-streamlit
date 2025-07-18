@@ -47,6 +47,15 @@ def initialize_session_state():
     if "negatives_logged" not in st.session_state:
         st.session_state.negatives_logged = set()
 
+    # Appointment system session state
+    if "appointment_data" not in st.session_state:
+        st.session_state.appointment_data = {
+            "selected_doctor": None,
+            "selected_datetime": None,
+            "booking_status": None,
+            "booking_reference": None
+        }
+
 def reset_session_state():
     """Session state teljes visszaállítása új konzultációhoz."""
     # EXPLICIT reset minden mezőnek
