@@ -135,12 +135,12 @@ class MedlineUI:
             
             # Teljes összefoglaló (ha van)
             if topic.summary and topic.summary != topic.snippet:
-                with st.expander("🔍 Részletes leírás"):
+                st.markdown("**🔍 Részletes leírás:**")
                     # Összefoglaló rövidítése, ha túl hosszú
-                    summary_text = topic.summary
-                    if len(summary_text) > 1000:
-                        summary_text = summary_text[:1000] + "..."
-                    st.markdown(summary_text)
+                summary_text = topic.summary
+                if len(summary_text) > 1000:
+                    summary_text = summary_text[:1000] + "..."
+                st.markdown(summary_text)
         
         with col2:
             # Relevancia pontszám
