@@ -1,3 +1,33 @@
+PS C:\Users\Ecsi\Desktop\HealthAi\Code\Medbot-0721\medbot-streamlit> streamlit run debug_appointment_system.py
+
+  You can now view your Streamlit app in your browser.
+
+  Local URL: http://localhost:8501
+  Network URL: http://192.168.0.22:8501
+
+📁 Új appointments.json fájl lesz létrehozva
+🟩 DEBUG: add_appointment() called
+🟩 DEBUG: Appointment ID: test_20250721102329
+🟩 DEBUG: Reference: APT-F9F5B492
+🟩 DEBUG: Doctor ID: doc_001
+🟩 DEBUG: Patient: Test Patient
+🟩 DEBUG: add_appointment() called
+🟩 DEBUG: Appointment ID: test_20250721102329
+🟩 DEBUG: Reference: APT-F9F5B492
+🟩 DEBUG: Doctor ID: doc_001
+🟩 DEBUG: Patient: Test Patient
+🟨 DEBUG: _save_to_file() called
+🟨 DEBUG: _save_to_file() called
+🟨 DEBUG: Saving 1 appointments
+💾 Elmentve 1 appointment
+🟨 DEBUG: Save completed successfully
+🟨 DEBUG: Save completed successfully
+✅ Új appointment hozzáadva és elmentve: APT-F9F5B492
+🟩 DEBUG: add_appointment() result: True
+🟩 DEBUG: Current appointments count: 1
+🟩 DEBUG: add_appointment() result: True
+🟩 DEBUG: Current appointments count: 1
+
 PS C:\Users\Ecsi\Desktop\HealthAi\Code\Medbot-0721\medbot-streamlit> streamlit run debug_appointment_ui.py
   You can now view your Streamlit app in your browser.
   Local URL: http://localhost:8501
