@@ -1,8 +1,8 @@
 # =============================================================================
-# appointment_system/logic/appointment_logic.py - JAVÍTOTT VERZIÓ
+# appointment_system/logic/appointment_logic.py - JAVÍTOTT VERZIÓ (save_appointments hiba kijavítva)
 # =============================================================================
 """
-Foglalási logika és workflow kezelés
+Foglalási logika és workflow kezelés - save_appointments hiba kijavítva
 """
 import streamlit as st
 from datetime import datetime, date, timedelta
@@ -220,9 +220,8 @@ class AppointmentManager:
             appointment.status = AppointmentStatus.CONFIRMED
             self.appointments_db.update_appointment(appointment)
 
-            # 🔧 JSON fájl mentése
-            #self.appointments_db.save_appointments()
-            # 
+            # ✅ JAVÍTVA: save_appointments() eltávolítva, mert automatikus mentés történik
+            print("📁 Appointment automatikusan mentve a _save_to_file() metódussal")
             
             # Értesítés küldése
             try:
@@ -265,10 +264,11 @@ class AppointmentManager:
         if self.appointments_db.cancel_appointment(appointment_id):
             result['success'] = True
             result['appointment'] = self.appointments_db.get_appointment_by_id(appointment_id)
+            print("📁 Appointment lemondás automatikusan mentve")
         else:
             result['errors'].append("Lemondás sikertelen")
         
-        #self.appointments_db.save_appointments()
+        # ✅ JAVÍTVA: save_appointments() eltávolítva, automatikus mentés történik
 
         return result
     
