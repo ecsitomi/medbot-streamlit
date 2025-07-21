@@ -167,7 +167,8 @@ class AppointmentsDatabase:
         self._update_patient_index(appointment)
         
         # Session state frissítése
-        st.session_state.appointments_db[appointment.id] = appointment
+        st.session_state.appointments_db.add_appointment(appointment)
+
         
         # 🚀 AUTOMATIKUS MENTÉS
         self._save_to_file()
@@ -192,7 +193,8 @@ class AppointmentsDatabase:
         appointment.updated_at = datetime.now()
         
         # Session state frissítése
-        st.session_state.appointments_db[appointment.id] = appointment
+        st.session_state.appointments_db.add_appointment(appointment)
+
         
         # 🚀 AUTOMATIKUS MENTÉS
         self._save_to_file()
