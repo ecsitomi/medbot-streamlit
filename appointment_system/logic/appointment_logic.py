@@ -222,6 +222,7 @@ class AppointmentManager:
 
             # 🔧 JSON fájl mentése
             self.appointments_db.save_appointments()
+            # 
             
             # Értesítés küldése
             try:
