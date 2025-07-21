@@ -1,0 +1,13 @@
+PS C:\Users\Ecsi\Desktop\HealthAi\Code\Medbot-0721\medbot-streamlit> streamlit run debug_appointment_ui.py
+  You can now view your Streamlit app in your browser.
+  Local URL: http://localhost:8501
+  Network URL: http://192.168.0.22:8501
+✅ Betöltve 1 appointment a fájlból
+🚀 DEBUG: Starting debug version of main app
+🚀 DEBUG: Starting debug version of main app
+
+PS C:\Users\Ecsi\Desktop\HealthAi\Code\Medbot-0721\medbot-streamlit> streamlit run debug_admin.py
+  You can now view your Streamlit app in your browser.
+  Local URL: http://localhost:8501
+  Network URL: http://192.168.0.22:8501
+✅ Betöltve 1 appointment a fájlból

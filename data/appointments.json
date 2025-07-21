@@ -1,0 +1,26 @@
+{
+  "test_20250721102329": {
+    "id": "test_20250721102329",
+    "doctor_id": "doc_001",
+    "patient_info": {
+      "name": "Test Patient",
+      "age": 30,
+      "gender": "férfi",
+      "phone": "+36 30 123 4567",
+      "email": "test@example.com",
+      "symptoms": [
+        "fejfájás"
+      ],
+      "diagnosis": "Test diagnosis",
+      "medical_history": [],
+      "medications": []
+    },
+    "datetime": "2025-07-21T10:23:29.002859",
+    "duration_minutes": 30,
+    "status": "megerősítve",
+    "notes": "Debug test appointment",
+    "created_at": "2025-07-21T10:23:29.002859",
+    "updated_at": "2025-07-21T10:23:29.002859",
+    "reference_number": "APT-F9F5B492"
+  }
+}
