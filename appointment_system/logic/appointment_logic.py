@@ -219,6 +219,9 @@ class AppointmentManager:
             # Automatikus megerősítés
             appointment.status = AppointmentStatus.CONFIRMED
             self.appointments_db.update_appointment(appointment)
+
+            # 🔧 JSON fájl mentése
+            self.appointments_db.save_appointments()
             
             # Értesítés küldése
             try:
@@ -264,6 +267,8 @@ class AppointmentManager:
         else:
             result['errors'].append("Lemondás sikertelen")
         
+        #self.appointments_db.save_appointments()
+
         return result
     
     def get_patient_appointments(self, patient_email: str) -> List[Appointment]:
