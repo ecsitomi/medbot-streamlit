@@ -447,11 +447,10 @@ class AppointmentsDatabase:
 _appointments_db = None
 
 def get_appointments_db() -> AppointmentsDatabase:
-    """Globális appointments adatbázis lekérése"""
-    global _appointments_db
-    if _appointments_db is None:
-        _appointments_db = AppointmentsDatabase()
-    return _appointments_db
+    if "appointments_db" not in st.session_state:
+        st.session_state.appointments_db = AppointmentsDatabase()
+    return st.session_state.appointments_db
+
 
 # =============================================================================
 # ADATKEZELŐ SEGÉDFÜGGVÉNYEK
