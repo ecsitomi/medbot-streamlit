@@ -82,10 +82,10 @@ class AppointmentBookingUI:
         if st.button("🎯 Időpont foglalása", type="primary", key="confirm_booking"):
             print("🎯 Időpont foglalása gomb megnyomva")
             
-            # ✅ JAVÍTOTT: Session state frissítés ELŐBB
-            st.session_state.booking_confirmed = True
+            # ✅ Session state inicializálás, ha nem létezik
+            if 'appointment_data' not in st.session_state:
+                st.session_state.appointment_data = {}
             
-            # ✅ AppointmentManager használata (MEGTARTVA)
             with st.spinner("Foglalás feldolgozása..."):
                 booking_result = self.appointment_manager.book_appointment(
                     doctor_id=doctor.id,
@@ -97,11 +97,11 @@ class AppointmentBookingUI:
             if booking_result['success']:
                 appointment = booking_result['appointment']
                 
-                # Session state frissítése a sikerrel
+                # ✅ JAVÍTÁS: Konzisztens session state frissítés
                 st.session_state.appointment_data = {
-                    "selected_doctor": doctor,
+                    "selected_doctor": doctor,  # Doctor objektum
                     "selected_datetime": selected_datetime,
-                    "appointment": appointment,
+                    "appointment": appointment,  # Appointment objektum
                     "booking_status": "confirmed"
                 }
                 

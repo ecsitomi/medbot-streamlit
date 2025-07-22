@@ -167,7 +167,7 @@ class AppointmentsDatabase:
         self._update_patient_index(appointment)
         
         # Session state frissítése
-        st.session_state.appointments_db.add_appointment(appointment)
+        #st.session_state.appointments_db.add_appointment(appointment)
 
         
         # 🚀 AUTOMATIKUS MENTÉS

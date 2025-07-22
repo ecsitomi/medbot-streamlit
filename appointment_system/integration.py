@@ -121,13 +121,23 @@ class AppointmentSystemIntegration:
     def get_appointment_status(self) -> Dict[str, Any]:
         """Appointment rendszer státuszának lekérése"""
         appointment_data = st.session_state.appointment_data
+
+        # DEBUG
+        print(f"🔍 DEBUG appointment_data keys: {appointment_data.keys()}")
+        print(f"🔍 DEBUG appointment type: {type(appointment_data.get('appointment'))}")
+        print(f"🔍 DEBUG doctor type: {type(appointment_data.get('selected_doctor'))}")
+        
+        # Kivonjuk az objektumokat
+        appointment = appointment_data.get("appointment")
+        selected_doctor = appointment_data.get("selected_doctor")
         
         return {
             "has_appointment": appointment_data.get("booking_status") == "confirmed",
-            "selected_doctor": appointment_data.get("selected_doctor") is not None,
+            "selected_doctor": selected_doctor is not None,
             "appointment_details": {
-                "reference_number": appointment_data.get("appointment", {}).get("reference_number") if appointment_data.get("appointment") else None,
-                "doctor_name": appointment_data.get("selected_doctor", {}).get("name") if appointment_data.get("selected_doctor") else None,
+                # ✅ JAVÍTVA: objektum attribútumok helyes elérése
+                "reference_number": appointment.reference_number if appointment else None,
+                "doctor_name": selected_doctor.name if selected_doctor else None,
                 "datetime": appointment_data.get("selected_datetime")
             }
         }

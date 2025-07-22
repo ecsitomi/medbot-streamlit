@@ -37,18 +37,26 @@ def create_legal_disclaimers():
 
 def display_appointment_status():
     """Appointment státusz megjelenítése"""
-    appointment_status = get_appointment_integration_status()
-    
-    if appointment_status["has_appointment"]:
-        st.markdown("### 📅 Foglalás Státusz")
-        appointment_details = appointment_status["appointment_details"]
+    try:
+        appointment_status = get_appointment_integration_status()
         
-        st.success(f"""
-        ✅ **Aktív foglalás**
-        
-        **Referencia:** {appointment_details.get('reference_number', 'N/A')}
-        **Orvos:** {appointment_details.get('doctor_name', 'N/A')}
-        """)
+        if appointment_status.get("has_appointment"):
+            st.markdown("### 📅 Foglalás Státusz")
+            appointment_details = appointment_status.get("appointment_details", {})
+            
+            # ✅ Biztonságosabb adatelérés
+            reference_number = appointment_details.get('reference_number', 'N/A')
+            doctor_name = appointment_details.get('doctor_name', 'N/A')
+            
+            st.success(f"""
+            ✅ **Aktív foglalás**
+            
+            **Referencia:** {reference_number}
+            **Orvos:** {doctor_name}
+            """)
+    except Exception as e:
+        # Hiba esetén ne omoljon össze az egész sidebar
+        st.error(f"Appointment státusz hiba: {str(e)}")
 
 def display_data_collection_status():
     """Adatgyűjtés állapotának megjelenítése."""
