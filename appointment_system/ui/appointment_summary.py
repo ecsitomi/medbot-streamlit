@@ -118,7 +118,8 @@ class AppointmentSummaryUI:
                 data=ics_content.encode('utf-8'),
                 file_name=f"appointment_{appointment.reference_number}.ics",
                 mime="text/calendar",
-                type="secondary"
+                type="secondary",
+                key=f"appointment_ics_{appointment.reference_number}"
             )
     
     def _generate_ics_content_fixed(self, appointment: Appointment, doctor: Doctor) -> str:

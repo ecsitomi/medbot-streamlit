@@ -249,7 +249,7 @@ class MedlineDataProcessor:
         Returns:
             Dict: Kulcsinformációk (tünetek, kezelések, okok, stb.)
         """
-        summary = topic.summary.lower()
+        summary = (topic.summary or '').lower()
         
         key_info = {
             'symptoms': self._extract_symptoms(summary),
@@ -263,6 +263,9 @@ class MedlineDataProcessor:
     
     def _extract_symptoms(self, text: str) -> List[str]:
         """Tünetek kigyűjtése a szövegből."""
+        if not text:
+            return []
+            
         symptom_patterns = [
             r'symptoms?(?:\s+include)?:?\s*([^.]+)',
             r'signs?(?:\s+include)?:?\s*([^.]+)',
@@ -273,13 +276,17 @@ class MedlineDataProcessor:
         for pattern in symptom_patterns:
             matches = re.findall(pattern, text, re.IGNORECASE)
             for match in matches:
-                symptom_list = [s.strip() for s in match.split(',')]
-                symptoms.extend(symptom_list)
+                if match and isinstance(match, str):
+                    symptom_list = [s.strip() for s in match.split(',')]
+                    symptoms.extend(symptom_list)
         
         return symptoms[:5]  # Max 5 tünet
     
     def _extract_causes(self, text: str) -> List[str]:
         """Okok kigyűjtése a szövegből."""
+        if not text:
+            return []
+            
         cause_patterns = [
             r'caused?\s+by:?\s*([^.]+)',
             r'reasons?\s+(?:include)?:?\s*([^.]+)',
@@ -290,13 +297,17 @@ class MedlineDataProcessor:
         for pattern in cause_patterns:
             matches = re.findall(pattern, text, re.IGNORECASE)
             for match in matches:
-                cause_list = [c.strip() for c in match.split(',')]
-                causes.extend(cause_list)
+                if match and isinstance(match, str):
+                    cause_list = [c.strip() for c in match.split(',')]
+                    causes.extend(cause_list)
         
         return causes[:3]  # Max 3 ok
     
     def _extract_treatments(self, text: str) -> List[str]:
         """Kezelések kigyűjtése a szövegből."""
+        if not text:
+            return []
+            
         treatment_patterns = [
             r'treatment(?:s)?:?\s*([^.]+)',
             r'therapy:?\s*([^.]+)',
@@ -307,13 +318,17 @@ class MedlineDataProcessor:
         for pattern in treatment_patterns:
             matches = re.findall(pattern, text, re.IGNORECASE)
             for match in matches:
-                treatment_list = [t.strip() for t in match.split(',')]
-                treatments.extend(treatment_list)
+                if match and isinstance(match, str):
+                    treatment_list = [t.strip() for t in match.split(',')]
+                    treatments.extend(treatment_list)
         
         return treatments[:4]  # Max 4 kezelés
     
     def _extract_prevention(self, text: str) -> List[str]:
         """Megelőzés kigyűjtése a szövegből."""
+        if not text:
+            return []
+            
         prevention_patterns = [
             r'prevent(?:ion)?:?\s*([^.]+)',
             r'avoid:?\s*([^.]+)',
@@ -324,13 +339,17 @@ class MedlineDataProcessor:
         for pattern in prevention_patterns:
             matches = re.findall(pattern, text, re.IGNORECASE)
             for match in matches:
-                prevention_list = [p.strip() for p in match.split(',')]
-                prevention.extend(prevention_list)
+                if match and isinstance(match, str):
+                    prevention_list = [p.strip() for p in match.split(',')]
+                    prevention.extend(prevention_list)
         
         return prevention[:3]  # Max 3 megelőzés
     
     def _extract_when_to_see_doctor(self, text: str) -> List[str]:
         """Mikor kell orvoshoz fordulni információk."""
+        if not text:
+            return []
+            
         doctor_patterns = [
             r'see\s+(?:a\s+)?doctor:?\s*([^.]+)',
             r'seek\s+medical\s+(?:help|attention):?\s*([^.]+)',
@@ -341,8 +360,9 @@ class MedlineDataProcessor:
         for pattern in doctor_patterns:
             matches = re.findall(pattern, text, re.IGNORECASE)
             for match in matches:
-                advice_list = [a.strip() for a in match.split(',')]
-                doctor_advice.extend(advice_list)
+                if match and isinstance(match, str):
+                    advice_list = [a.strip() for a in match.split(',')]
+                    doctor_advice.extend(advice_list)
         
         return doctor_advice[:2]  # Max 2 tanács
 

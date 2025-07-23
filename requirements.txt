@@ -8,7 +8,8 @@ typing-extensions>=4.0.0
 # Medline integration
 requests>=2.31.0        # API hívások
 urllib3>=1.26.0         # HTTP support
-lxml>=4.9.0             # XML parsing (opcionális)
+lxml>=4.9.0             # XML parsing
+aiohttp>=3.12.13        # Asynchronous HTTP client
 
 #Adatkezelés
 pandas>=2.0.0       # CSV export és admin oldal DataFrame

@@ -63,6 +63,10 @@ def generate_pdf(export_data):
 
 def wrap_text(canvas_obj, text, max_width, font_name, font_size):
     """Szöveg tördelése a megadott szélességhez."""
+    if text is None or not str(text).strip():
+        return []
+    
+    text = str(text).strip()
     words = text.split(' ')
     lines = []
     current_line = ""

@@ -184,7 +184,8 @@ def display_backup_tools():
                         label="📥 CSV Letöltése",
                         data=f.read(),
                         file_name=os.path.basename(csv_path),
-                        mime='text/csv'
+                        mime='text/csv',
+                        key="admin_csv_download"
                     )
             else:
                 st.error("❌ CSV export sikertelen!")

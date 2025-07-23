@@ -9,6 +9,7 @@ import streamlit as st
 from logic import is_evaluation_complete
 from medline_integration.integration import integrate_medline_to_medical_summary_wrapper
 from appointment_system.integration import integrate_appointment_booking
+from pathlib import Path
 
 # JAVÍTOTT IMPORT - helyes függvénynév
 try:
@@ -58,6 +59,118 @@ def display_medical_summary():
         st.session_state.patient_data,
         st.session_state.diagnosis
     )
+
+    # Medline PDF letöltés opció
+    if st.session_state.get('medline_topics') and len(st.session_state.medline_topics) > 0:
+        st.markdown("---")
+        st.markdown("### 📥 Medline Információk Letöltése")
+        
+        col1, col2 = st.columns([3, 1])
+        
+        with col1:
+            st.info(f"""
+            **{len(st.session_state.medline_topics)} Medline témakör érhető el letöltésre**
+            
+            A letöltés PDF formátumban történik, amely tartalmazza:
+            - Teljes leírásokat
+            - Orvosi kifejezéseket
+            - Kapcsolódó információkat
+            """)
+        
+        with col2:
+            # Beállítások
+            combine_pdf = st.checkbox("Egyesített PDF", value=False, 
+                                    key="medline_combined_pdf")
+        
+        # Ellenőrizzük, hogy vannak-e már letöltött PDF-ek
+        if 'medline_downloaded_pdfs' not in st.session_state:
+            st.session_state.medline_downloaded_pdfs = []
+        
+        # Letöltés gomb
+        if st.button("📥 Letöltés indítása", type="primary", key="start_medline_download"):
+            # Import és letöltés
+            import asyncio
+            from medline_download import download_medline_pdfs
+            
+            # Progress bar
+            progress_bar = st.progress(0.0)
+            status_text = st.empty()
+            
+            # Async futtatás Streamlit-ben
+            async def run_download():
+                # Patient data előkészítése
+                patient_data = {
+                    'case_id': st.session_state.get('case_id', 'unknown'),
+                    'diagnosis': st.session_state.get('diagnosis', ''),
+                    'symptoms': st.session_state.patient_data.get('symptoms', [])
+                }
+                
+                # Letöltés
+                result = await download_medline_pdfs(
+                    st.session_state.medline_topics,
+                    patient_data
+                )
+                
+                return result
+            
+            # Progress update (polling)
+            from medline_download import get_download_status
+            
+            # Háttér task indítása
+            with st.spinner("Medline információk letöltése..."):
+                # Async loop
+                loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(loop)
+                
+                try:
+                    result = loop.run_until_complete(run_download())
+                    
+                    # Eredmény megjelenítése
+                    if result['success']:
+                        # Session state-ben tároljuk a PDF fájlokat
+                        st.session_state.medline_downloaded_pdfs = result['pdf_files']
+                        
+                        st.success(f"""
+                        ✅ **Sikeres letöltés!**
+                        
+                        Létrehozott PDF fájlok: {len(result['pdf_files'])}
+                        """)
+                        
+                        # Rerun hogy megjelenjenek a letöltés gombok
+                        st.rerun()
+                        
+                    else:
+                        st.error("❌ Letöltés sikertelen!")
+                        for error in result['errors']:
+                            st.error(error)
+                            
+                finally:
+                    loop.close()
+        
+        # PDF letöltő gombok megjelenítése (session state alapján)
+        if st.session_state.get('medline_downloaded_pdfs'):
+            st.markdown("---")
+            st.markdown("### 📄 Letöltött PDF Fájlok")
+            
+            for i, pdf_file in enumerate(st.session_state.medline_downloaded_pdfs):
+                pdf_path = Path("medline_data/pdfs") / pdf_file
+                if pdf_path.exists():
+                    try:
+                        with open(pdf_path, 'rb') as f:
+                            st.download_button(
+                                label=f"📄 {pdf_file}",
+                                data=f.read(),
+                                file_name=pdf_file,
+                                mime="application/pdf",
+                                key=f"download_pdf_{i}_{len(pdf_file)}"  # Egyedi key
+                            )
+                    except Exception as e:
+                        st.error(f"Hiba a fájl olvasásakor: {pdf_file} - {e}")
+            
+            # Reset gomb a PDF lista törléséhez
+            if st.button("🗑️ PDF lista törlése", key="clear_pdf_list"):
+                st.session_state.medline_downloaded_pdfs = []
+                st.rerun()
 
 def display_patient_data_summary():
     """Páciens adatok összefoglalójának megjelenítése."""

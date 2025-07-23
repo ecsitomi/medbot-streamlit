@@ -136,7 +136,8 @@ def display_export_options():
             label="📄 JSON letöltése",
             data=json.dumps(export_data, indent=2, ensure_ascii=False),
             file_name=f"{export_data['case_id']}.json",
-            mime="application/json"
+            mime="application/json",
+            key="export_json"
         )
         
         # PDF export
@@ -146,7 +147,8 @@ def display_export_options():
                 label="📑 PDF letöltése",
                 data=pdf_data,
                 file_name=f"{export_data['case_id']}.pdf",
-                mime="application/pdf"
+                mime="application/pdf",
+                key="export_pdf"
             )
 
 def display_reset_button():
