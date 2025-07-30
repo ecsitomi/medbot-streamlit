@@ -20,6 +20,6 @@ langchain>=0.1.0
 langchain-community>=0.1.0
 langchain-openai>=0.0.5
 #langchain-chroma>=0.0.5
-#chromadb>=0.4.22
+chromadb>=0.4.22
 pypdf>=4.0.0
 tiktoken>=0.5.2
