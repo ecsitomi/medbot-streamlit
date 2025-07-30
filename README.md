@@ -41,6 +41,12 @@ medical_chatbot/
 │   ├── api_client.py               # Külső Medline cikkek lekérése
 │   ├── ui_components.py            # Streamlit megjelenítés a felületen
 │   └── data_processor.py           # Lokális adatbázis feldolgozása
+├──rag_pdf/
+│    ├── __init__.py
+│    ├── pdf_processor.py            # PDF feldolgozás és chunking
+│    ├── vector_store.py             # Chroma vector DB kezelés
+│    ├── rag_analyzer.py             # RAG alapú elemzés
+│    └── config.py                   # RAG konfiguráció
 ├── medline_db.json                 # Lokális Medline tartalmak (opcionális)
 ├── requirements.txt                # Függőségek telepítése
 └── README.md                       # Ezt olvasod

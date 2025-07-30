@@ -1,12 +1,9 @@
-/.env
-/summary.txt
-/medline.txt
-/PRD-1.txt
-/PRD-2.txt
-/test.txt
+.env
 __pycache__/
+medline_data/
+rag_data/
+vectorstore/
 *.pyc
 *.pyo
 *.pyd
 *.db
-medline_data/

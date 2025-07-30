@@ -22,33 +22,5 @@
     "created_at": "2025-07-21T10:23:29.002859",
     "updated_at": "2025-07-21T10:23:29.002859",
     "reference_number": "APT-F9F5B492"
-  },
-  "apt_20250722133253_doc_002": {
-    "id": "apt_20250722133253_doc_002",
-    "doctor_id": "doc_002",
-    "patient_info": {
-      "name": "Lajcsi Bácsi",
-      "age": 33,
-      "gender": "nő",
-      "phone": "+3670201231234",
-      "email": "lajcsi@bacsi.hu",
-      "symptoms": [
-        "fejfájás"
-      ],
-      "diagnosis": "",
-      "medical_history": [
-        "nincs"
-      ],
-      "medications": [
-        "nincs"
-      ]
-    },
-    "datetime": "2025-07-31T09:00:00",
-    "duration_minutes": 30,
-    "status": "megerősítve",
-    "notes": "Automatikus foglalás a medical chatbot rendszerből.",
-    "created_at": "2025-07-22T13:32:53.716168",
-    "updated_at": "2025-07-22T13:32:53.719104",
-    "reference_number": "APT-4F3A9655"
   }
 }

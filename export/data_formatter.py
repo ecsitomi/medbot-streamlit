@@ -31,8 +31,12 @@ def create_export_data():
     # Medline adatok hozzáadása
     export_data = add_medline_to_export_data(export_data)
     
-    # JAVÍTOTT: Appointment adatok hozzáadása - helyes függvénynév
+    # Appointment adatok hozzáadása - helyes függvénynév
     export_data = add_appointment_to_export_data(export_data)
+
+    # RAG elemzés eredmények hozzáadása
+    if 'rag_analysis_results' in st.session_state:
+        export_data['rag_analysis'] = st.session_state.rag_analysis_results
     
     return export_data
 

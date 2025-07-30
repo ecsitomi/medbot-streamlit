@@ -10,6 +10,7 @@ from logic import is_evaluation_complete
 from medline_integration.integration import integrate_medline_to_medical_summary_wrapper
 from appointment_system.integration import integrate_appointment_booking
 from pathlib import Path
+from datetime import datetime
 
 # JAVÍTOTT IMPORT - helyes függvénynév
 try:
@@ -171,6 +172,36 @@ def display_medical_summary():
             if st.button("🗑️ PDF lista törlése", key="clear_pdf_list"):
                 st.session_state.medline_downloaded_pdfs = []
                 st.rerun()
+
+    # RAG elemzés gomb
+    if st.session_state.get('medline_downloaded_pdfs') and len(st.session_state.medline_downloaded_pdfs) > 0:
+        st.markdown("---")
+        st.markdown("### 🧠 RAG Alapú Elemzés")
+        
+        st.info("""
+        **Mélyelemzés a letöltött Medline dokumentumok alapján**
+        
+        A RAG (Retrieval Augmented Generation) elemzés:
+        - Feldolgozza a letöltött PDF-eket
+        - Releváns információkat keres a beteg állapotához
+        - Személyre szabott tanácsokat generál
+        """)
+        
+        if st.button("🔍 RAG Elemzés indítása", type="primary", key="start_rag_analysis"):
+            # RAG modul importálása
+            from rag_pdf import run_rag_analysis
+            
+            # Patient data összegyűjtése
+            patient_data_for_rag = st.session_state.patient_data.copy()
+            patient_data_for_rag['diagnosis'] = st.session_state.get('diagnosis', '')
+            patient_data_for_rag['case_id'] = st.session_state.get('case_id', 
+                                            f"case-{datetime.now().strftime('%Y%m%d%H%M%S')}")
+            
+            # RAG elemzés futtatása
+            rag_results = run_rag_analysis(patient_data_for_rag)
+            
+            # Eredmények session state-be mentése
+            st.session_state['rag_analysis_results'] = rag_results            
 
 def display_patient_data_summary():
     """Páciens adatok összefoglalójának megjelenítése."""
