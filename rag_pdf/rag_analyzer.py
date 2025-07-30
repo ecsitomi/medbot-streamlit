@@ -19,6 +19,7 @@ from langchain_community.document_loaders import PyPDFLoader
 import json
 from pathlib import Path
 
+# Streamlitre kell
 try:
     import pysqlite3
     import sys
@@ -376,55 +377,44 @@ Kérlek adj részletes egészségügyi tanácsokat a Medline dokumentumok alapj�
         return result
     
     def _extract_structured_response(self, response: str) -> Dict[str, str]:
-        """Strukturált válasz kinyerése a RAG response-ból"""
+        #Strukturált válasz kinyerése a RAG response-ból sorszám alapján
+
         sections = {
             "patient_condition": "",
             "symptom_management": "",
             "recommended_specialist": "",
             "additional_info": ""
         }
-        
-        # Szekciók keresése a válaszban
-        current_section = None
-        lines = response.split('\n')
-        
-        for line in lines:
-            line = line.strip()
-            if not line:
-                continue
-                
-            # Szekció címek felismerése
-            if any(keyword in line.lower() for keyword in ["probléma", "betegség", "diagnózis", "mi lehet"]):
-                current_section = "patient_condition"
-            elif any(keyword in line.lower() for keyword in ["tünet", "kezelés", "mit tehet", "otthon"]):
-                current_section = "symptom_management"
-            elif any(keyword in line.lower() for keyword in ["orvos", "szakorvos", "forduljon", "doktor"]):
-                current_section = "recommended_specialist"
-            elif any(keyword in line.lower() for keyword in ["további", "tanács", "hasznos", "megelőzés"]):
-                current_section = "additional_info"
-            elif current_section and line and not line.startswith('**'):
-                # Szekció tartalom hozzáadása
-                if sections[current_section]:
-                    sections[current_section] += "\n"
-                sections[current_section] += line
-        
-        # Ha nem sikerült strukturáltan parseolni, osszuk fel egyszerűen
-        if not any(sections.values()):
-            lines = response.split('\n')
-            quarter_size = len(lines) // 4
-            
-            sections["patient_condition"] = '\n'.join(lines[:quarter_size])
-            sections["symptom_management"] = '\n'.join(lines[quarter_size:quarter_size*2])
-            sections["recommended_specialist"] = '\n'.join(lines[quarter_size*2:quarter_size*3])
-            sections["additional_info"] = '\n'.join(lines[quarter_size*3:])
-        
-        # Tisztítás
+
+        import re
+
+        # Regex a 4 szekció címének megtalálására
+        pattern = r"(1\.\s\*\*.*?\*\*.*?)(?=2\.|\Z)|" \
+                r"(2\.\s\*\*.*?\*\*.*?)(?=3\.|\Z)|" \
+                r"(3\.\s\*\*.*?\*\*.*?)(?=4\.|\Z)|" \
+                r"(4\.\s\*\*.*?\*\*.*)"
+
+        matches = re.findall(pattern, response, flags=re.DOTALL)
+
+        for i, match_group in enumerate(matches):
+            for match in match_group:
+                if match:
+                    if i == 0:
+                        sections["patient_condition"] = match.strip()
+                    elif i == 1:
+                        sections["symptom_management"] = match.strip()
+                    elif i == 2:
+                        sections["recommended_specialist"] = match.strip()
+                    elif i == 3:
+                        sections["additional_info"] = match.strip()
+
+        # Fallback üzenet, ha valami kimarad
         for key in sections:
-            sections[key] = sections[key].strip()
             if not sections[key]:
                 sections[key] = "Nem sikerült releváns információt találni"
-        
+
         return sections
+
     
     def get_vectorstore_stats(self) -> Dict[str, Any]:
         """Vector store statisztikák"""
