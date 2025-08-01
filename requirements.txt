@@ -9,6 +9,7 @@ typing-extensions>=4.0.0
 requests>=2.31.0        # API hívások
 urllib3>=1.26.0         # HTTP support
 lxml>=4.9.0             # XML parsing
+xmltodict>=0.13.0       # XML to dict conversion
 aiohttp>=3.12.13        # Asynchronous HTTP client
 
 #Adatkezelés
