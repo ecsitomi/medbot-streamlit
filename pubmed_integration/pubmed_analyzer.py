@@ -15,6 +15,7 @@ from langchain.prompts import PromptTemplate
 from langchain.chains import LLMChain
 
 from .config import PUBMED_CONFIG, PUBMED_DATA_DIR
+from .advanced_search_strategy import AdvancedPubMedSearchStrategy
 
 class PubMedAnalyzer:
     """PubMed alapú orvosi elemző"""
@@ -46,6 +47,24 @@ class PubMedAnalyzer:
             model="gpt-3.5-turbo",
             temperature=0
         )
+    
+    # ÚJ ADVANCED SEARCH STRATEGY
+    def run_advanced_pubmed_search(self, patient_data: Dict[str, Any]) -> str:
+        """Új stratégia alapú lekérdezés és keresés"""
+        strategy = AdvancedPubMedSearchStrategy()
+        queries = strategy.build_comprehensive_search_queries(patient_data)
+        
+        # Több lekérdezés lefuttatása és eredmények összefűzése
+        all_results = ""
+        for q in queries:
+            query_string = strategy.format_final_query(q)
+            st.info(f"🔍 Lekérdezés: {query_string[:120]}...")
+            try:
+                result = self.pubmed_tool.invoke(query_string)
+                all_results += f"\n--- QUERY ---\n{query_string}\n--- RESULT ---\n{result}\n"
+            except Exception as e:
+                st.warning(f"Hiba a lekérdezésnél: {e}")
+        return all_results.strip()  
     
     def translate_to_english(self, text: str) -> str:
         """Magyar szöveg fordítása angolra"""
@@ -334,7 +353,8 @@ def run_pubmed_analysis(patient_data: Dict[str, Any],
         st.info(f"🔍 Keresési kifejezés: {search_query}")
         
         # 3. PubMed keresés
-        pubmed_results = analyzer.search_pubmed(search_query)
+        #pubmed_results = analyzer.search_pubmed(search_query) #RÉGI
+        pubmed_results = analyzer.run_advanced_pubmed_search(translated_data) #ÚJ
         
         if not pubmed_results:
             st.warning("⚠️ Nem találtunk releváns publikációkat")
