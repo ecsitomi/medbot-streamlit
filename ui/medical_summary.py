@@ -201,7 +201,34 @@ def display_medical_summary():
             rag_results = run_rag_analysis(patient_data_for_rag)
             
             # Eredmények session state-be mentése
-            st.session_state['rag_analysis_results'] = rag_results            
+            st.session_state['rag_analysis_results'] = rag_results   
+
+    # PubMed elemzés (ha van RAG eredmény)
+    if st.session_state.get('rag_analysis_results'):
+        st.markdown("---")
+        st.markdown("### 🔬 PubMed Mélykutatás")
+        
+        st.info("""
+        **Tudományos publikációk elemzése a PubMed adatbázisból**
+        
+        A PubMed elemzés:
+        - A világ legnagyobb orvosi publikációs adatbázisát használja
+        - Evidencia-alapú kezelési javaslatokat keres
+        - A legfrissebb kutatási eredményeket dolgozza fel
+        """)
+        
+        if st.button("🔬 PubMed Elemzés indítása", type="primary", key="start_pubmed_analysis"):
+            # PubMed modul importálása
+            from pubmed_integration import run_pubmed_analysis
+            
+            # Elemzés futtatása
+            pubmed_results = run_pubmed_analysis(
+                patient_data=patient_data_for_rag,
+                rag_results=st.session_state.get('rag_analysis_results')
+            )
+            
+            # Eredmények session state-be mentése
+            st.session_state['pubmed_analysis_results'] = pubmed_results
 
 def display_patient_data_summary():
     """Páciens adatok összefoglalójának megjelenítése."""

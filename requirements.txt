@@ -23,5 +23,6 @@ langchain-openai>=0.0.5
 chromadb>=0.4.22
 pypdf>=4.0.0
 tiktoken>=0.5.2
+pubmed-parser>=0.3.1 
 
 pysqlite3-binary>=0.5.2

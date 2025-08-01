@@ -19,6 +19,8 @@ from langchain_community.document_loaders import PyPDFLoader
 import json
 from pathlib import Path
 
+'''
+
 # Streamlitre kell
 try:
     import pysqlite3
@@ -26,6 +28,8 @@ try:
     sys.modules["sqlite3"] = pysqlite3
 except ImportError:
     print("⚠️ pysqlite3-binary nem elérhető – SQLite override sikertelen")
+
+'''
 
 # Fordítási segédfüggvények
 def translate_text(text: str, openai_api_key: str) -> str:
