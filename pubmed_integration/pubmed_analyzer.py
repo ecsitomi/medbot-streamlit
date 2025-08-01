@@ -3,6 +3,7 @@
 PubMed alapú orvosi kutatás és elemzés
 """
 import os
+import re
 import streamlit as st
 from typing import Dict, Any, List, Optional
 from datetime import datetime
@@ -48,23 +49,124 @@ class PubMedAnalyzer:
             temperature=0
         )
     
-    # ÚJ ADVANCED SEARCH STRATEGY
+    # TOVÁBBFEJLESZTETT ADVANCED SEARCH STRATEGY
     def run_advanced_pubmed_search(self, patient_data: Dict[str, Any]) -> str:
-        """Új stratégia alapú lekérdezés és keresés"""
+        """Újratervezett stratégia alapú lekérdezés és keresés"""
         strategy = AdvancedPubMedSearchStrategy()
+        
+        # Debug információk megjelenítése fejlesztési módban
+        if st.session_state.get('debug_mode', False):
+            debug_info = strategy.debug_query_generation(patient_data)
+            st.write("🔧 **Debug információk:**", debug_info)
+        
         queries = strategy.build_comprehensive_search_queries(patient_data)
         
-        # Több lekérdezés lefuttatása és eredmények összefűzése
+        if not queries:
+            st.warning("⚠️ Nem sikerült keresési lekérdezéseket generálni")
+            return ""
+        
+        # Lekérdezések végrehajtása
         all_results = ""
-        for q in queries:
+        successful_queries = 0
+        
+        for i, q in enumerate(queries):
             query_string = strategy.format_final_query(q)
-            st.info(f"🔍 Lekérdezés: {query_string[:120]}...")
+            
+            if not query_string:
+                st.warning(f"❌ {i+1}. lekérdezés üres")
+                continue
+                
+            st.info(f"🔍 {i+1}. lekérdezés ({len(query_string)} karakter): {query_string[:100]}...")
+            
             try:
                 result = self.pubmed_tool.invoke(query_string)
-                all_results += f"\n--- QUERY ---\n{query_string}\n--- RESULT ---\n{result}\n"
+                if result and len(result.strip()) > 50:  # Csak értelmes eredményeket fogadjuk el
+                    all_results += f"\n--- QUERY {i+1} ---\n{query_string}\n--- RESULT ---\n{result}\n"
+                    successful_queries += 1
+                    st.success(f"✅ {i+1}. lekérdezés sikeres")
+                else:
+                    st.warning(f"⚠️ {i+1}. lekérdezés üres eredményt adott")
+                
+                # Ha már van 2 sikeres lekérdezés, elég
+                if successful_queries >= 2:
+                    break
+                    
             except Exception as e:
-                st.warning(f"Hiba a lekérdezésnél: {e}")
-        return all_results.strip()  
+                st.error(f"❌ Hiba a {i+1}. lekérdezésnél: {e}")
+                continue
+        
+        if successful_queries == 0:
+            st.error("❌ Egyik lekérdezés sem volt sikeres")
+            return ""
+        
+        st.success(f"✅ Összesen {successful_queries} sikeres lekérdezés")
+        return all_results.strip()
+    
+    def run_simple_pubmed_search(self, patient_data: Dict[str, Any]) -> str:
+        """Egyszerű fallback keresés, ha a komplex keresés nem működik"""
+        symptoms = patient_data.get('symptoms', [])
+        diagnosis = patient_data.get('diagnosis', '')
+        
+        # Egyszerű query építése
+        query_parts = []
+        
+        if symptoms:
+            # Csak az első 2 tünet
+            primary_symptoms = symptoms[:2]
+            for symptom in primary_symptoms:
+                # Egyszerű fordítás
+                eng_symptom = self._simple_translate(symptom)
+                if eng_symptom:
+                    query_parts.append(eng_symptom)
+        
+        if diagnosis and diagnosis != "Nem sikerült diagnózist javasolni.":
+            eng_diagnosis = self._simple_translate(diagnosis)
+            if eng_diagnosis:
+                query_parts.append(eng_diagnosis)
+        
+        if not query_parts:
+            return ""
+        
+        # Egyszerű query összeállítása
+        simple_query = " AND ".join(query_parts[:2])  # Max 2 elem
+        final_query = f"({simple_query}) AND humans[MeSH]"
+        
+        st.info(f"🔍 Egyszerű keresés: {final_query}")
+        
+        try:
+            result = self.pubmed_tool.invoke(final_query)
+            return result if result else ""
+        except Exception as e:
+            st.error(f"❌ Egyszerű keresés is sikertelen: {e}")
+            return ""
+    
+    def _simple_translate(self, text: str) -> str:
+        """Egyszerű magyar-angol fordítás alapvető kifejezésekhez"""
+        simple_translations = {
+            'fejfájás': 'headache',
+            'láz': 'fever',
+            'köhögés': 'cough',
+            'hányás': 'vomiting',
+            'hasmenés': 'diarrhea',
+            'fáradtság': 'fatigue',
+            'szédülés': 'dizziness',
+            'hasfájás': 'abdominal pain',
+            'torokfájás': 'sore throat',
+            'légzési nehézség': 'dyspnea',
+            'influenza': 'influenza',
+            'megfázás': 'common cold',
+            'gastritis': 'gastritis',
+            'allergia': 'allergy',
+            'asztma': 'asthma'
+        }
+        
+        text_lower = text.lower().strip()
+        
+        # Tisztítás - bizonytalan kifejezések eltávolítása
+        text_lower = re.sub(r'^(lehetséges|valószínű|esetleg|talán)\s+', '', text_lower)
+        text_lower = re.sub(r'\s+(gyanúja|gyanú)$', '', text_lower)
+        
+        return simple_translations.get(text_lower, text_lower)  
     
     def translate_to_english(self, text: str) -> str:
         """Magyar szöveg fordítása angolra"""
@@ -352,12 +454,17 @@ def run_pubmed_analysis(patient_data: Dict[str, Any],
         search_query = analyzer.build_search_query(translated_data, rag_results)
         st.info(f"🔍 Keresési kifejezés: {search_query}")
         
-        # 3. PubMed keresés
-        #pubmed_results = analyzer.search_pubmed(search_query) #RÉGI
-        pubmed_results = analyzer.run_advanced_pubmed_search(translated_data) #ÚJ
+        # 3. PubMed keresés - TOVÁBBFEJLESZTETT STRATÉGIA
+        st.info("🔍 Optimalizált PubMed keresés indítása...")
+        pubmed_results = analyzer.run_advanced_pubmed_search(translated_data)
+        
+        # Ha a fejlett keresés nem működött, próbáljuk az egyszerű keresést
+        if not pubmed_results or len(pubmed_results.strip()) < 100:
+            st.warning("⚠️ Fejlett keresés sikertelen, egyszerű keresés próbálása...")
+            pubmed_results = analyzer.run_simple_pubmed_search(patient_data)
         
         if not pubmed_results:
-            st.warning("⚠️ Nem találtunk releváns publikációkat")
+            st.warning("⚠️ Nem találtunk releváns publikációkat egyik módszerrel sem")
             return analyzer._create_empty_result()
         
         # 4. Eredmények elemzése
