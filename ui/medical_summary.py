@@ -27,6 +27,14 @@ def display_medical_summary():
     
     st.markdown("---")
     st.markdown("### 📋 Orvosi Összefoglaló")
+
+    def prepare_patient_data_for_analysis():
+        """Patient data előkészítése RAG és PubMed elemzésekhez"""
+        patient_data_for_analysis = st.session_state.patient_data.copy()
+        patient_data_for_analysis['diagnosis'] = st.session_state.get('diagnosis', '')
+        patient_data_for_analysis['case_id'] = st.session_state.get('case_id', 
+                                        f"case-{datetime.now().strftime('%Y%m%d%H%M%S')}")
+        return patient_data_for_analysis
     
     # Triage értékelés
     if st.session_state.triage_level:
@@ -191,11 +199,8 @@ def display_medical_summary():
             # RAG modul importálása
             from rag_pdf import run_rag_analysis
             
-            # Patient data összegyűjtése
-            patient_data_for_rag = st.session_state.patient_data.copy()
-            patient_data_for_rag['diagnosis'] = st.session_state.get('diagnosis', '')
-            patient_data_for_rag['case_id'] = st.session_state.get('case_id', 
-                                            f"case-{datetime.now().strftime('%Y%m%d%H%M%S')}")
+            # ✅ JAVÍTÁS: Közös függvény használata
+            patient_data_for_rag = prepare_patient_data_for_analysis()
             
             # RAG elemzés futtatása
             rag_results = run_rag_analysis(patient_data_for_rag)
@@ -212,7 +217,7 @@ def display_medical_summary():
         **Tudományos publikációk elemzése a PubMed adatbázisból**
         
         A PubMed elemzés:
-        - A világ legnagyobb orvosi publikációs adatbázisát használja
+        - A világ legnagyobb orvosi publikációs adatbázisát használja  
         - Evidencia-alapú kezelési javaslatokat keres
         - A legfrissebb kutatási eredményeket dolgozza fel
         """)
@@ -221,9 +226,12 @@ def display_medical_summary():
             # PubMed modul importálása
             from pubmed_integration import run_pubmed_analysis
             
+            # ✅ JAVÍTÁS: Közös függvény használata itt is
+            patient_data_for_pubmed = prepare_patient_data_for_analysis()
+            
             # Elemzés futtatása
             pubmed_results = run_pubmed_analysis(
-                patient_data=patient_data_for_rag,
+                patient_data=patient_data_for_pubmed,  # ✅ Most már létezik!
                 rag_results=st.session_state.get('rag_analysis_results')
             )
             
