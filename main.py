@@ -54,16 +54,6 @@ def main():
         display_data_overview()
         display_appointments_table()
 
-    if st.sidebar.button("🐛 Debug Session State"):
-        st.write("### Session State Debug")
-        st.json({
-            "appointment_data": {
-                "has_data": "appointment_data" in st.session_state,
-                "keys": list(st.session_state.get("appointment_data", {}).keys()),
-                "booking_status": st.session_state.get("appointment_data", {}).get("booking_status")
-            }
-        })
-
 def initialize_medline_integration_without_sidebar():
     """
     ✅ ÚJ: Medline integráció inicializálása sidebar opciók NÉLKÜL.
