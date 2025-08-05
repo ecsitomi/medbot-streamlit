@@ -3,7 +3,7 @@
 # =============================================================================
 """
 Sidebar komponensek és adatgyűjtés státusz.
-MÓDOSÍTVA: Appointment státusz megjelenítése - JAVÍTOTT IMPORT
+MÓDOSÍTVA: Medline sidebar opciók hozzáadása a megfelelő helyre
 """
 import streamlit as st
 import json
@@ -18,6 +18,13 @@ except ImportError:
     # Fallback, ha az appointment system nincs telepítve
     def get_appointment_integration_status():
         return {"has_appointment": False, "appointment_details": {}}
+
+# ✅ ÚJ IMPORT - Medline sidebar opciók
+try:
+    from medline_integration.integration import medline_integration
+except ImportError:
+    # Fallback, ha a medline integráció nincs telepítve
+    medline_integration = None
 
 def create_legal_disclaimers():
     """Jogi nyilatkozatok megjelenítése."""
@@ -124,6 +131,16 @@ def display_data_collection_status():
     # Hash mentése
     st.session_state.sidebar_last_update = current_hash
 
+def display_medline_sidebar_options():
+    """✅ ÚJ: Medline sidebar opciók megjelenítése"""
+    if medline_integration:
+        try:
+            # Medline integráció sidebar opcióinak megjelenítése
+            medline_integration.add_sidebar_options()
+        except Exception as e:
+            # Ha hiba van, ne álljon le az egész sidebar
+            st.error(f"Medline sidebar hiba: {str(e)}")
+
 def display_export_options():
     """Exportálási lehetőségek megjelenítése."""
     if is_evaluation_complete():
@@ -174,15 +191,16 @@ def display_reset_button():
         st.rerun()
 
 def create_dynamic_sidebar():
-    """Dinamikusan frissülő sidebar."""
+    """✅ JAVÍTOTT: Dinamikusan frissülő sidebar Medline integrációval."""
     with st.sidebar:
-        # Jogi nyilatkozatok
-        create_legal_disclaimers()
         
         # Adatgyűjtés státusz
         status_container = st.empty()
         with status_container.container():
             display_data_collection_status()
+        
+        # ✅ ÚJ: Medline sidebar opciók - az adatgyűjtés státusz után
+        display_medline_sidebar_options()
         
         # Appointment státusz
         if is_evaluation_complete():
@@ -193,3 +211,6 @@ def create_dynamic_sidebar():
         
         # Reset gomb
         display_reset_button()
+        
+        # Jogi nyilatkozatok
+        create_legal_disclaimers()
