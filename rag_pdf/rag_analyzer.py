@@ -1,8 +1,8 @@
 # =============================================================================
-# rag_pdf/rag_analyzer.py - JAVÍTOTT VERZIÓ
+# rag_pdf/rag_analyzer.py 
 # =============================================================================
 """
-RAG alapú PDF elemzés JAVÍTOTT VERZIÓ - deprecated függvények kijavítva
+RAG alapú PDF elemzés 
 """
 import os
 import streamlit as st
@@ -47,6 +47,9 @@ def translate_patient_data(patient_data: Dict[str, Any], openai_api_key: str) ->
     translated['diagnosis'] = translate_text(patient_data.get('diagnosis', ''), openai_api_key)
     translated['existing_conditions'] = translate_list(patient_data.get('existing_conditions', []), openai_api_key)
     translated['medications'] = translate_list(patient_data.get('medications', []), openai_api_key)
+    translated['gender'] = translate_list(patient_data.get('gender', []), openai_api_key)
+    translated['duration'] = translate_list(patient_data.get('duration', []), openai_api_key)
+    translated['severity'] = translate_list(patient_data.get('severity', []), openai_api_key)
     return translated
 
 ###
@@ -273,7 +276,7 @@ VÁLASZ MAGYARUL:
             print(f"🔍 RAG Query: {query}")
             
             # ✅ JAVÍTVA: Modern invoke használata predict helyett
-            with st.spinner("RAG elemzés folyamatban..."):
+            with st.spinner("🧠 RAG elemzés folyamatban..."):
                 rag_response = self.retrieval_chain.invoke(query)
             
             print(f"📄 RAG Response: {rag_response[:200]}...")
@@ -495,14 +498,12 @@ def run_rag_analysis(patient_data: Dict[str, Any], openai_api_key: str = None) -
     
     Args:
         patient_data: Beteg adatok (a session state-ből)
-        openai_api_key: OpenAI API kulcs (opcionális)
+        openai_api_key: OpenAI API kulcs 
         
     Returns:
         Dict: RAG elemzés eredménye
     """
-    try:
-        st.info("🔍 RAG alapú elemzés indítása...")
-        
+    try:       
         # API kulcs ellenőrzése
         if not openai_api_key:
             openai_api_key = os.getenv("OPENAI_API_KEY") or st.secrets.get("OPENAI_API_KEY")
@@ -515,7 +516,6 @@ def run_rag_analysis(patient_data: Dict[str, Any], openai_api_key: str = None) -
         analyzer = RAGAnalyzer()
         
         # Elemzés futtatása
-        st.info("🤖 AI elemzés futtatása...")
         results = analyzer.analyze_medical_case(patient_data)
         
         # Eredmények ellenőrzése
@@ -529,7 +529,6 @@ def run_rag_analysis(patient_data: Dict[str, Any], openai_api_key: str = None) -
         # UI megjelenítés
         _display_rag_results(results, save_paths)
         
-        st.success("✅ RAG elemzés sikeresen befejezve!")
         return results
         
     except Exception as e:
@@ -583,6 +582,12 @@ def _display_rag_results(results: Dict[str, Any], save_paths: Dict[str, str]):
     st.markdown("### 🧠 RAG Elemzés Eredménye")
     
     # Eredmények megjelenítése expander-ekben
+    st.success(f"📋 Beteg állapota: {results.get('patient_condition', 'Nincs információ')}")
+    st.success(f"💊 Mit tehet a tünetek ellen: {results.get('symptom_management', 'Nincs információ')}")
+    st.success(f"👨‍⚕️ Ajánlott szakorvos: {results.get('recommended_specialist', 'Nincs információ')}")
+    st.success(f"ℹ️ További információk: {results.get('additional_info', 'Nincs információ')}")
+
+    '''
     with st.expander("📋 Beteg állapota", expanded=True):
         st.markdown(results.get('patient_condition', 'Nincs információ'))
     
@@ -594,6 +599,7 @@ def _display_rag_results(results: Dict[str, Any], save_paths: Dict[str, str]):
     
     with st.expander("ℹ️ További információk", expanded=True):
         st.markdown(results.get('additional_info', 'Nincs információ'))
+    '''
     
     # Források megjelenítése
     if results.get('sources'):

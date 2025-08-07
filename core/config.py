@@ -15,8 +15,8 @@ load_dotenv()  # Környezeti változók betöltése .env fájlból
 # OpenAI kliens inicializálása
 def get_openai_client():
     """OpenAI kliens létrehozása."""
-    #client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
-    client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
+    client = OpenAI(api_key=os.getenv("OPENAI_API_KEY"))
+    #client = OpenAI(api_key=st.secrets["OPENAI_API_KEY"])
     return client
 
 # Streamlit konfiguráció
@@ -37,7 +37,7 @@ TOOL_SCHEMA = {
             "type": "object",
             "properties": {
                 "age": {"type": "integer", "description": "A páciens életkora"},
-                "gender": {"type": "string", "enum": ["férfi", "nő"], "description": "A páciens neme"},
+                "gender": {"type": "string", "enum": ["férfi", "nő"], "description": "A páciens biológiai neme"},
                 "symptoms": {"type": "array", "items": {"type": "string"}, "description": "A páciens tünetei"},
                 "duration": {"type": "string", "description": "Tünetek időtartama (pl. 2 napja, 1 hete)"},
                 "severity": {"type": "string", "enum": ["enyhe", "közepes", "súlyos"], "description": "Tünetek súlyossága"},  
@@ -66,7 +66,7 @@ WELCOME_MESSAGE = {
 
 **Hogyan működik a konzultáció:**
 1. 📝 Először összegyűjtöm az összes szükséges információt Önről
-2. 🔍 Majd elkészítem a részletes orvosi értékelést  
+2. 🔍 Majd elkészítem a részletes értékelést  
 3. 📄 Végül letöltheti az összefoglalót
 
 **Kezdjük!** Kérem, írja le, mi a panasza vagy milyen tünetei vannak."""

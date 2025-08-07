@@ -356,15 +356,9 @@ def manual_extract_info(user_input):
     
     # Kontextus meghatározása
     context = get_current_question_context()
-
-    # 🔍 DEBUG INFORMÁCIÓK
-    print(f"🔍 DEBUG - User input: '{user_input}'")
-    print(f"🔍 DEBUG - Context: {context}")
-    print(f"🔍 DEBUG - Current medications: {st.session_state.patient_data.get('medications')}")
     
     # Negatív válasz ellenőrzése
     is_negative = detect_negative_response(user_input)
-    print(f"🔍 DEBUG - Is negative response: {is_negative}")
     
     # === KONTEXTUS ALAPÚ EXTRACTION ===
     simple_extracted = enhanced_simple_response_extraction(user_input, context)
@@ -415,22 +409,17 @@ def manual_extract_info(user_input):
     # Kontextus alapú negatív válasz kezelés
     # === NEGATÍV VÁLASZ KEZELÉS ===
     if detect_negative_response(user_input):
-        print(f"🔍 DEBUG - Negative response detected!")
         
         if context == 'existing_conditions' and not st.session_state.patient_data.get('existing_conditions'):
-            print(f"🔍 DEBUG - Setting existing_conditions to ['nincs']")
             st.session_state.patient_data['existing_conditions'] = ["nincs"]
             extracted_anything = True
 
         if context == 'medications' and not st.session_state.patient_data.get('medications'):
-            print(f"🔍 DEBUG - Setting medications to ['nincs']")
             st.session_state.patient_data['medications'] = ["nincs"]
             extracted_anything = True
         else:
             print(f"🔍 DEBUG - Medications NOT set because context={context} or medications already exists: {st.session_state.patient_data.get('medications')}")
     
-    print(f"🔍 DEBUG - Final medications: {st.session_state.patient_data.get('medications')}")
-    print(f"🔍 DEBUG - Extracted anything: {extracted_anything}")
     
     return extracted_anything
 

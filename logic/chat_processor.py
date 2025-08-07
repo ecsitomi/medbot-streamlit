@@ -247,7 +247,7 @@ def get_next_question_with_reasoning():
             return generated_question
         
         # 3. MINDEN ADAT MEGVAN
-        return "Köszönöm az összes információt! Most elkészítem az orvosi értékelést."
+        return "Köszönöm az összes információt! Most elkészítem az értékelést."
         
     except Exception as e:
         st.error(f"Hiba a kérdés generálásában: {e}")
@@ -275,13 +275,13 @@ def get_next_question_fallback():
     elif not data.get("age"):
         return "Hány éves Ön? Ez segít a pontosabb értékelésben."
     elif not data.get("gender"):
-        return "Kérem, adja meg a nemét (férfi/nő). Ez is fontos az értékeléshez."
+        return "Kérem, adja meg a biológiai nemét (férfi/nő). Ez is fontos az értékeléshez."
     elif not data.get("existing_conditions"):
         return "Vannak-e ismert krónikus betegségei, allergiái vagy egyéb egészségügyi problémái? Ha nincs, írja be: 'nincs'."
     elif not data.get("medications"):
         return "Szed-e rendszeresen gyógyszereket vagy vitaminokat? Ha nem, írja be: 'nincs'."
     else:
-        return "Köszönöm az összes információt! Most elkészítem az orvosi értékelést."
+        return "Köszönöm az összes információt! Most elkészítem az értékelést."
 
 def process_chat_input_enhanced(user_input):
     """
@@ -313,7 +313,7 @@ def process_chat_input_enhanced(user_input):
                 if data.get('existing_conditions'):
                     assistant_reply += f"• **Betegségek:** {', '.join(data['existing_conditions'])}\n"
                 
-                assistant_reply += "\n🔄 **Orvosi értékelés készítése...**"
+                assistant_reply += "\n🔄 **Értékelés készítése...**"
                 
                 # Értékelések futtatása (eredeti logika)
                 st.session_state.triage_level = triage_decision(st.session_state.patient_data)
@@ -324,7 +324,7 @@ def process_chat_input_enhanced(user_input):
                 
                 return assistant_reply
             else:
-                return "Az orvosi értékelés már elkészült."
+                return "Az értékelés már elkészült."
         else:
             # 3. ADATVÁLTOZÁSOK ÉSZLELÉSE
             data_changes = detect_data_changes()
@@ -352,7 +352,7 @@ def process_chat_input_enhanced(user_input):
         return f"Hiba történt: {str(e)}. Próbálja újra!"
 
 def is_evaluation_complete():
-    """Ellenőrzi, hogy az orvosi értékelés elkészült-e. (EREDETI - VÁLTOZATLAN)"""
+    """Ellenőrzi, hogy az értékelés elkészült-e. (EREDETI - VÁLTOZATLAN)"""
     return bool(st.session_state.triage_level)
 
 def get_evaluation_status():

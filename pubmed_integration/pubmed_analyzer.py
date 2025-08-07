@@ -76,14 +76,14 @@ class PubMedAnalyzer:
                 st.warning(f"❌ {i+1}. lekérdezés üres")
                 continue
                 
-            st.info(f"🔍 {i+1}. lekérdezés ({len(query_string)} karakter): {query_string[:100]}...")
+            #st.info(f"🔍 {i+1}. lekérdezés ({len(query_string)} karakter): {query_string[:100]}...")
             
             try:
                 result = self.pubmed_tool.invoke(query_string)
                 if result and len(result.strip()) > 50:  # Csak értelmes eredményeket fogadjuk el
                     all_results += f"\n--- QUERY {i+1} ---\n{query_string}\n--- RESULT ---\n{result}\n"
                     successful_queries += 1
-                    st.success(f"✅ {i+1}. lekérdezés sikeres")
+                    #st.success(f"✅ {i+1}. lekérdezés sikeres")
                 else:
                     st.warning(f"⚠️ {i+1}. lekérdezés üres eredményt adott")
                 
@@ -99,7 +99,7 @@ class PubMedAnalyzer:
             st.error("❌ Egyik lekérdezés sem volt sikeres")
             return ""
         
-        st.success(f"✅ Összesen {successful_queries} sikeres lekérdezés")
+        #st.success(f"✅ Összesen {successful_queries} sikeres lekérdezés")
         return all_results.strip()
     
     def run_simple_pubmed_search(self, patient_data: Dict[str, Any]) -> str:
@@ -131,7 +131,7 @@ class PubMedAnalyzer:
         simple_query = " AND ".join(query_parts[:2])  # Max 2 elem
         final_query = f"({simple_query}) AND humans[MeSH]"
         
-        st.info(f"🔍 Egyszerű keresés: {final_query}")
+        #st.info(f"🔍 Egyszerű keresés: {final_query}")
         
         try:
             result = self.pubmed_tool.invoke(final_query)
@@ -251,7 +251,7 @@ class PubMedAnalyzer:
     def search_pubmed(self, query: str) -> str:
         """PubMed keresés végrehajtása"""
         try:
-            st.info(f"🔍 PubMed keresés: {query[:100]}...")
+            #st.info(f"🔍 PubMed keresés: {query[:100]}...")
             results = self.pubmed_tool.invoke(query)
             return results
         except Exception as e:
@@ -342,7 +342,10 @@ FONTOS: A válaszod legyen MAGYAR nyelvű, közérthető és praktikus!
         return " | ".join(info_parts)
     
     def _parse_analysis_response(self, response: str) -> Dict[str, Any]:
-        """AI válasz strukturált formába alakítása"""
+        """AI válasz strukturált formába alakítása - REGEX ALAPÚ"""
+        import re
+        from datetime import datetime
+        
         sections = {
             "research_findings": "",
             "treatment_methods": "",
@@ -351,40 +354,191 @@ FONTOS: A válaszod legyen MAGYAR nyelvű, közérthető és praktikus!
             "further_tests": ""
         }
         
-        # Egyszerű szekció felismerés
-        current_section = None
-        lines = response.split('\n')
+        if not response or len(response.strip()) < 10:
+            return self._create_empty_result()
         
-        section_keywords = {
-            "research_findings": ["kutatási eredmények", "publikációk", "tanulmányok"],
-            "treatment_methods": ["kezelési", "terápia", "gyógyszer"],
-            "clinical_guidelines": ["irányelvek", "protokoll", "guidelines"],
-            "prognosis": ["prognózis", "kilátások", "gyógyulás"],
-            "further_tests": ["vizsgálatok", "diagnosztika", "tesztek"]
-        }
+        # Regex pattern a számozott szekciók megtalálására
+        # Támogatja: 1. **Cím** vagy 1. Cím formátumokat
+        patterns = [
+            # 1. Legfrissebb kutatási eredmények
+            r"1\.\s*\*{0,2}(?:Legfrissebb kutatási eredmények|Kutatási eredmények)[:\*]*\s*(.*?)(?=2\.|$)",
+            # 2. Ajánlott kezelési módszerek
+            r"2\.\s*\*{0,2}(?:Ajánlott kezelési módszerek|Kezelési módszerek)[:\*]*\s*(.*?)(?=3\.|$)",
+            # 3. Klinikai irányelvek
+            r"3\.\s*\*{0,2}(?:Klinikai irányelvek|Irányelvek)[:\*]*\s*(.*?)(?=4\.|$)",
+            # 4. Prognózis és kilátások
+            r"4\.\s*\*{0,2}(?:Prognózis és kilátások|Prognózis)[:\*]*\s*(.*?)(?=5\.|$)",
+            # 5. További vizsgálatok
+            r"5\.\s*\*{0,2}(?:További vizsgálatok|További javasolt vizsgálatok|Vizsgálatok)[:\*]*\s*(.*?)(?=$)"
+        ]
         
-        for line in lines:
-            line_lower = line.lower()
-            
-            # Szekció azonosítása
-            for section, keywords in section_keywords.items():
-                if any(keyword in line_lower for keyword in keywords):
-                    current_section = section
-                    break
-            
-            # Tartalom hozzáadása
-            if current_section and line.strip() and not line.startswith('*'):
-                sections[current_section] += line + "\n"
+        # Kulcsok sorrendben
+        keys = ["research_findings", "treatment_methods", "clinical_guidelines", "prognosis", "further_tests"]
         
-        # Ha nem sikerült parseolni, az egész választ tároljuk
+        # Próbáljuk meg minden patternt
+        for i, (pattern, key) in enumerate(zip(patterns, keys)):
+            match = re.search(pattern, response, re.DOTALL | re.IGNORECASE)
+            if match:
+                content = match.group(1).strip()
+                # Tisztítjuk a tartalmat
+                content = self._clean_content(content)
+                if content:
+                    sections[key] = content
+        
+        # Ha nem találtunk számozott listát, próbáljuk meg ** címek ** alapján
+        if not any(sections.values()):
+            sections = self._extract_by_headers(response)
+        
+        # Ha még mindig nincs eredmény, használjunk általános pattern-t
+        if not any(sections.values()):
+            sections = self._extract_general_numbered_list(response)
+        
+        # Fallback: teljes válasz mentése
         if not any(sections.values()):
             sections["full_response"] = response
+            if st.session_state.get('debug_mode', False):
+                st.warning("⚠️ Nem sikerült szekciókra bontani, teljes válasz mentve")
         
         return {
             'success': True,
             'timestamp': datetime.now().isoformat(),
             **sections
         }
+
+    def _extract_by_headers(self, response: str) -> Dict[str, str]:
+        """Kivonat ** header ** formátum alapján"""
+        import re
+        
+        sections = {
+            "research_findings": "",
+            "treatment_methods": "",
+            "clinical_guidelines": "",
+            "prognosis": "",
+            "further_tests": ""
+        }
+        
+        # Pattern a **cím** formátumú részek megtalálására
+        header_patterns = {
+            "research_findings": r"\*\*(Legfrissebb kutatási eredmények|Kutatási eredmények)\*\*:?\s*(.*?)(?=\*\*|$)",
+            "treatment_methods": r"\*\*(Ajánlott kezelési módszerek|Kezelési módszerek)\*\*:?\s*(.*?)(?=\*\*|$)",
+            "clinical_guidelines": r"\*\*(Klinikai irányelvek|Irányelvek)\*\*:?\s*(.*?)(?=\*\*|$)",
+            "prognosis": r"\*\*(Prognózis és kilátások|Prognózis)\*\*:?\s*(.*?)(?=\*\*|$)",
+            "further_tests": r"\*\*(További vizsgálatok|További javasolt vizsgálatok)\*\*:?\s*(.*?)(?=\*\*|$)"
+        }
+        
+        for key, pattern in header_patterns.items():
+            match = re.search(pattern, response, re.DOTALL | re.IGNORECASE)
+            if match:
+                content = match.group(2).strip()
+                content = self._clean_content(content)
+                if content:
+                    sections[key] = content
+        
+        return sections
+
+    def _extract_general_numbered_list(self, response: str) -> Dict[str, str]:
+        """Általános számozott lista feldolgozása"""
+        import re
+        
+        sections = {
+            "research_findings": "",
+            "treatment_methods": "",
+            "clinical_guidelines": "",
+            "prognosis": "",
+            "further_tests": ""
+        }
+        
+        # Általános pattern bármilyen számozott listához
+        general_pattern = r"(\d+)\.\s*\*{0,2}(.*?)\*{0,2}:?\s*(.*?)(?=\d+\.|$)"
+        
+        matches = re.findall(general_pattern, response, re.DOTALL)
+        
+        for number, title, content in matches:
+            title_lower = title.lower().strip()
+            content = self._clean_content(content.strip())
+            
+            # Kulcsszavak alapján kategorizálás
+            if any(kw in title_lower for kw in ['kutatás', 'eredmény', 'publikáció', 'tanulmány', 'evidencia']):
+                sections["research_findings"] = content
+            elif any(kw in title_lower for kw in ['kezelés', 'terápia', 'gyógyszer', 'módszer']):
+                sections["treatment_methods"] = content
+            elif any(kw in title_lower for kw in ['irányelv', 'protokoll', 'guideline', 'standard']):
+                sections["clinical_guidelines"] = content
+            elif any(kw in title_lower for kw in ['prognózis', 'kilátás', 'kimenetel', 'gyógyulás']):
+                sections["prognosis"] = content
+            elif any(kw in title_lower for kw in ['vizsgálat', 'diagnosztika', 'teszt', 'további']):
+                sections["further_tests"] = content
+        
+        return sections
+
+    def _clean_content(self, content: str) -> str:
+        """Tartalom tisztítása"""
+        if not content:
+            return ""
+        
+        import re
+        
+        # Eltávolítjuk a felesleges whitespace-t
+        content = content.strip()
+        
+        # Eltávolítjuk a többszörös üres sorokat
+        content = re.sub(r'\n\s*\n+', '\n\n', content)
+        
+        # Eltávolítjuk a vezető számozást a sorok elejéről
+        content = re.sub(r'^[\d\-\*\•]+\.\s*', '', content, flags=re.MULTILINE)
+        
+        # Eltávolítjuk a felesleges markdown jelöléseket
+        content = re.sub(r'^\*+\s*', '', content, flags=re.MULTILINE)
+        content = re.sub(r'\*+$', '', content, flags=re.MULTILINE)
+        
+        return content.strip()
+
+    # TESZTELŐ FÜGGVÉNY
+    def test_parse_response(self):
+        """Tesztelés különböző válasz formátumokkal"""
+        
+        test_responses = [
+            # Formátum 1: Számozott lista **címekkel**
+            """
+            1. **Legfrissebb kutatási eredmények**
+            A legújabb meta-analízis szerint a betegség...
+            
+            2. **Ajánlott kezelési módszerek**
+            Az elsővonalbeli kezelés magában foglalja...
+            
+            3. **Klinikai irányelvek**
+            A WHO 2024-es ajánlása alapján...
+            
+            4. **Prognózis és kilátások**
+            A betegek 80%-a teljes gyógyulást mutat...
+            
+            5. **További vizsgálatok**
+            Javasolt laborvizsgálatok: CBC, CRP...
+            """,
+            
+            # Formátum 2: Csak **címek**
+            """
+            **Legfrissebb kutatási eredmények**
+            Új tanulmányok kimutatták...
+            
+            **Ajánlott kezelési módszerek**
+            Gyógyszeres terápia: ...
+            """,
+            
+            # Formátum 3: Egyszerű számozott lista
+            """
+            1. Kutatási eredmények: A vizsgálatok azt mutatják...
+            2. Kezelési módszerek: Antibiotikum terápia...
+            3. Irányelvek: EMA guideline szerint...
+            4. Prognózis: Jó kilátások...
+            5. További vizsgálatok: MRI javasolt...
+            """
+        ]
+        
+        for i, test_response in enumerate(test_responses):
+            st.write(f"### Teszt {i+1}")
+            result = self._parse_analysis_response(test_response)
+            st.json(result)
     
     def _create_empty_result(self) -> Dict[str, Any]:
         """Üres eredmény struktúra"""
@@ -441,21 +595,21 @@ def run_pubmed_analysis(patient_data: Dict[str, Any],
         Dict: PubMed elemzés eredménye
     """
     try:
-        st.info("🔬 PubMed mélykutatás indítása...")
+        #st.info("🔬 PubMed mélykutatás indítása...")
         
         # Analyzer inicializálása
         analyzer = PubMedAnalyzer(openai_api_key)
         
         # 1. Magyar adatok fordítása angolra
-        st.info("🌐 Adatok előkészítése a kereséshez...")
+        #st.info("🌐 Adatok előkészítése a kereséshez...")
         translated_data = analyzer.translate_patient_data(patient_data)
         
         # 2. Keresési query összeállítása
         search_query = analyzer.build_search_query(translated_data, rag_results)
-        st.info(f"🔍 Keresési kifejezés: {search_query}")
+        #st.info(f"🔍 Keresési kifejezés: {search_query}")
         
         # 3. PubMed keresés - TOVÁBBFEJLESZTETT STRATÉGIA
-        st.info("🔍 Optimalizált PubMed keresés indítása...")
+        #st.info("🔍 Optimalizált PubMed keresés indítása...")
         pubmed_results = analyzer.run_advanced_pubmed_search(translated_data)
         
         # Ha a fejlett keresés nem működött, próbáljuk az egyszerű keresést
@@ -468,13 +622,21 @@ def run_pubmed_analysis(patient_data: Dict[str, Any],
             return analyzer._create_empty_result()
         
         # 4. Eredmények elemzése
+        with st.spinner("🤖 Publikációk elemzése..."):
+            analysis_results = analyzer.analyze_pubmed_results(
+                pubmed_results, 
+                patient_data,
+                rag_results
+        )
+        '''
         st.info("🤖 Publikációk elemzése és magyar nyelvű összefoglaló készítése...")
         analysis_results = analyzer.analyze_pubmed_results(
             pubmed_results, 
             patient_data,
             rag_results
         )
-        
+        '''
+
         # 5. Eredmények mentése
         save_path = analyzer.save_results(analysis_results, patient_data)
         if save_path:
@@ -509,8 +671,10 @@ def display_pubmed_results(results: Dict[str, Any], save_path: str = None):
     for title, key in sections:
         content = results.get(key, "")
         if content and content.strip():
-            with st.expander(title, expanded=(key == "research_findings")):
-                st.markdown(content)
+            #with st.expander(title, expanded=(key == "research_findings")):
+            #    st.markdown(content)
+
+            st.success(f"👨‍⚕️ {title}: {content.strip()}")
     
     # Ha van teljes válasz (fallback)
     if results.get('full_response'):

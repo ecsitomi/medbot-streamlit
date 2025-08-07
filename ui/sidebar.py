@@ -1,9 +1,8 @@
 # =============================================================================
-# ui/sidebar.py - JAVÍTOTT VERZIÓ
+# ui/sidebar.py
 # =============================================================================
 """
 Sidebar komponensek és adatgyűjtés státusz.
-MÓDOSÍTVA: Medline sidebar opciók hozzáadása a megfelelő helyre
 """
 import streamlit as st
 import json
@@ -11,7 +10,7 @@ from core import get_data_hash, reset_session_state
 from logic import is_evaluation_complete
 from export import create_export_data, generate_pdf
 
-# JAVÍTOTT IMPORT - helyes függvénynév
+# Időpont integráció importálása
 try:
     from appointment_system.integration import get_appointment_integration_status
 except ImportError:
@@ -19,13 +18,14 @@ except ImportError:
     def get_appointment_integration_status():
         return {"has_appointment": False, "appointment_details": {}}
 
-# ✅ ÚJ IMPORT - Medline sidebar opciók
+#  Medline sidebar opciók
 try:
     from medline_integration.integration import medline_integration
 except ImportError:
     # Fallback, ha a medline integráció nincs telepítve
     medline_integration = None
 
+# Jogi nyilatkozatok és adatvédelmi információk
 def create_legal_disclaimers():
     """Jogi nyilatkozatok megjelenítése."""
     with st.expander("📄 Jogi nyilatkozat", expanded=False):
@@ -199,7 +199,7 @@ def create_dynamic_sidebar():
         with status_container.container():
             display_data_collection_status()
         
-        # ✅ ÚJ: Medline sidebar opciók - az adatgyűjtés státusz után
+        # Medline sidebar opciók - az adatgyűjtés státusz után
         display_medline_sidebar_options()
         
         # Appointment státusz

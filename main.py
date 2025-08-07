@@ -1,29 +1,30 @@
 # =============================================================================
-# main.py - JAVÍTOTT VERZIÓ
+# main.py 
 # =============================================================================
 """
 Medical Chatbot - Fő alkalmazás fájl
-Refaktorált verzió moduláris architektúrával.
-JAVÍTVA: Duplikált Medline sidebar hívás eltávolítása
 """
 import streamlit as st
 from core import initialize_session_state, reset_session_state, STREAMLIT_CONFIG
 from ui import create_dynamic_sidebar, create_chat_interface, create_medical_display
 from medline_integration.integration import initialize_medline_integration
+from logic import is_evaluation_complete
 from admin_page import display_data_overview, display_appointments_table
 
+
 def configure_streamlit():
-    """Streamlit konfiguráció beállítása."""
+    #"""Streamlit konfiguráció beállítása."""
     st.set_page_config(**STREAMLIT_CONFIG)
+
+def appointment_admin():
+    if st.session_state.get('page') == 'admin':
+        display_data_overview()
+        display_appointments_table()
 
 def main():
     """Fő alkalmazás."""
     # Streamlit konfiguráció
     configure_streamlit()
-    
-    # ✅ JAVÍTETT: Medline integráció inicializálása SIDEBAR HÍVÁS NÉLKÜL
-    # A sidebar opciók most a create_dynamic_sidebar()-ban jelennek meg
-    initialize_medline_integration_without_sidebar()
 
     # Új konzultáció indításának detektálása
     if st.session_state.get("start_new_consultation", False):
@@ -41,35 +42,16 @@ def main():
     create_dynamic_sidebar()
 
     # Chat interface
-    create_chat_interface()
+    if not is_evaluation_complete():
+        create_chat_interface()
     
     # Orvosi összefoglaló megjelenítése
     create_medical_display()
 
-    # Sidebar-ban admin tab
-    if st.sidebar.button("🔧 Admin"):
-        st.session_state.page = "admin"
-    
-    if st.session_state.get('page') == 'admin':
-        display_data_overview()
-        display_appointments_table()
+    # Időpont admin
+    appointment_admin()
 
-def initialize_medline_integration_without_sidebar():
-    """
-    ✅ ÚJ: Medline integráció inicializálása sidebar opciók NÉLKÜL.
-    A sidebar opciók most közvetlenül a create_dynamic_sidebar()-ban jelennek meg.
-    """
-    try:
-        from medline_integration.integration import medline_integration
-        
-        # Csak a kliens inicializálása, sidebar opciók NÉLKÜL
-        medline_integration.initialize_client()
-        
-    except ImportError:
-        # Ha nincs medline integráció, ne törjön el az alkalmazás
-        pass
-    except Exception as e:
-        st.error(f"Medline integráció inicializálási hiba: {e}")
+    
 
 if __name__ == "__main__":
     main()
