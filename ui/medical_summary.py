@@ -29,6 +29,38 @@ except ImportError:
     def integrate_appointment_booking(gpt_specialist_advice, patient_data, diagnosis):
         pass
 
+def download_medline():
+    # Automatikus letöltési logika (csak a funkcionális rész)
+    if st.session_state.get('medline_topics') and len(st.session_state.medline_topics) > 0:
+        download_key = f"medline_download_completed_{hash(str(st.session_state.medline_topics))}"
+        
+        if not st.session_state.get(download_key, False) and not st.session_state.get('medline_downloaded_pdfs'):
+            import asyncio
+            from medline_download import download_medline_pdfs
+
+            async def run_download():
+                patient_data = {
+                    'case_id': st.session_state.get('case_id', 'unknown'),
+                    'diagnosis': st.session_state.get('diagnosis', ''),
+                    'symptoms': st.session_state.patient_data.get('symptoms', [])
+                }
+                return await download_medline_pdfs(st.session_state.medline_topics, patient_data)
+
+            # Letöltés futtatása
+            loop = asyncio.new_event_loop()
+            asyncio.set_event_loop(loop)
+            try:
+                result = loop.run_until_complete(run_download())
+                if result['success']:
+                    st.session_state.medline_downloaded_pdfs = result['pdf_files']
+                    st.session_state[download_key] = True
+            except Exception as e:
+                # Silent error handling - logikában marad a hiba információ
+                st.session_state.medline_download_error = str(e)
+            finally:
+                loop.close()
+
+
 def display_medical_summary():
     """Tabos elrendezésű orvosi összefoglaló és kiegészítő fülek."""
     if not is_evaluation_complete(): #ITT FUT A CHAT LOGIKA, HA NINCS MEG MINDEN ADAT AKKOR CSAK KÉRDEZ, HA MEGVAN AKKOR JÖN AZ ÖSSZEGZÉS
@@ -46,10 +78,9 @@ def display_medical_summary():
     # Tabok definiálása
     tabs = st.tabs([
         "📋 Elemzés",
-        "🧬 Medline",
-        "📥 Medline PDF",
-        "🧠 RAG elemzés",
-        "🔬 PubMed",
+        "🧬 Medline könyvtár",
+        "🧠 Medline RAG elemzés",
+        "🔬 PubMed kutatás",
         "📅 Időpontfoglalás",
         "💬 Chat",
         "📊 Foglalások"
@@ -78,9 +109,146 @@ def display_medical_summary():
         integrate_medline_to_medical_summary_wrapper(
             st.session_state.diagnosis,
             st.session_state.patient_data.get('symptoms', [])
+        )    
+
+    # --- RAG Elemzés ---
+    with tabs[2]:
+        download_medline()  
+        
+        if st.session_state.get('medline_downloaded_pdfs'):
+            # Védett ellenőrzés a dupla futás ellen
+            rag_analysis_key = f"rag_completed_{hash(str(st.session_state.get('medline_downloaded_pdfs', [])))}"
+            
+            if not st.session_state.get('rag_analysis_results') and not st.session_state.get(rag_analysis_key, False):
+                try:
+                    from rag_pdf import run_rag_analysis
+                    patient_data_for_rag = prepare_patient_data_for_analysis()
+                    rag_results = run_rag_analysis(patient_data_for_rag)
+                    st.session_state['rag_analysis_results'] = rag_results
+                    st.session_state[rag_analysis_key] = True  # Megjelöli, hogy kész
+                except Exception as e:
+                    st.session_state['rag_analysis_error'] = str(e)
+
+            # Eredmény megjelenítése
+            rag_results = st.session_state.get('rag_analysis_results')
+            if rag_results:
+                st.markdown("### 🧠 RAG Elemzés Eredménye")
+                st.success(f"📋 {rag_results.get('patient_condition', 'Nincs információ')}")
+                st.success(f"💊 {rag_results.get('symptom_management', 'Nincs információ')}")
+                st.success(f"👨‍⚕️ {rag_results.get('recommended_specialist', 'Nincs információ')}")
+                st.success(f"ℹ️ {rag_results.get('additional_info', 'Nincs információ')}")
+                st.markdown("---")
+        else:
+            st.warning("Előbb töltsd le a Medline PDF-eket a Medline fülön.")
+
+
+    # --- PubMed Elemzés ---
+    with tabs[3]:
+        pubmed_results = st.session_state.get('pubmed_analysis_results')
+        if not pubmed_results:
+            if st.session_state.get('rag_analysis_results'):
+                st.markdown("### 🔬 PubMed Mélykutatás")
+                st.info("Tudományos publikációk elemzése a PubMed adatbázisból.")
+                if st.button("🔬 Kutatás indítása", type="primary", key="start_pubmed_analysis"):
+                    from pubmed_integration import run_pubmed_analysis
+                    patient_data_for_pubmed = prepare_patient_data_for_analysis()
+                    pubmed_results = run_pubmed_analysis(
+                        patient_data=patient_data_for_pubmed,
+                        rag_results=st.session_state.get('rag_analysis_results')
+                    )
+                    st.session_state['pubmed_analysis_results'] = pubmed_results
+                    st.rerun()
+            else:
+                st.warning("Előbb futtasd a RAG elemzést a RAG fülön.")
+        else:
+            st.markdown("### 🧠 PubMed Kutatás Eredménye")
+            st.success(f"📚 1. __Legfrissebb kutatási eredmények:__ {pubmed_results.get('research_findings', 'Nincs információ')}")
+            st.success(f"💊 2. __Ajánlott kezelési módszerek:__ {pubmed_results.get('treatment_methods', 'Nincs információ')}")
+            st.success(f"📋 3. __Klinikai irányelvek:__ {pubmed_results.get('clinical_guidelines', 'Nincs információ')}")
+            st.success(f"📈 4. __Prognózis és kilátások:__ {pubmed_results.get('prognosis', 'Nincs információ')}")
+            st.success(f"🔍 5. __További javasolt vizsgálatok:__ {pubmed_results.get('further_tests', 'Nincs információ')}")
+            st.markdown("---")
+            
+    # --- Időpontfoglalás ---
+    with tabs[4]:
+        integrate_appointment_booking(
+            st.session_state.gpt_specialist_advice,
+            st.session_state.patient_data,
+            st.session_state.diagnosis
         )
+
+    # --- Páciens adatok és Chat előzmények ---
+    with tabs[5]:
+        st.markdown("### 💬 Chat Előzmények")
+        if any(v for v in st.session_state.patient_data.values() if v):
+            with st.expander("📊 Összegyűjtött adatok", expanded=True):
+                col1, col2 = st.columns(2)
+                with col1:
+                    data = st.session_state.patient_data
+                    if data.get('age'):
+                        st.write(f"**Életkor:** {data['age']} év")
+                    if data.get('gender'):
+                        st.write(f"**Nem:** {data['gender']}")
+                    if data.get('duration'):
+                        st.write(f"**Időtartam:** {data['duration']}")
+                    if data.get('severity'):
+                        st.write(f"**Súlyosság:** {data['severity']}\n")
+                with col2:
+                    if data.get('symptoms'):
+                        st.write(f"**Tünetek:** {', '.join(data['symptoms'])}")
+                    if data.get('existing_conditions'):
+                        st.write(f"**Betegségek:** {', '.join(data['existing_conditions'])}")
+                    if data.get('medications'):
+                        st.write(f"**Gyógyszerek:** {', '.join(data['medications'])}")
+        else:
+            st.info("Nincsenek elérhető páciensek adatok még.")
+
+        for message in st.session_state.chat_history:
+            with st.chat_message(message["role"]):
+                st.markdown(message["content"])
+        st.markdown("---")
+
+    with tabs[6]:
+        display_data_overview()
+        display_appointments_table()
+
+
+def display_patient_data_summary():
+    """Páciens adatok összefoglalójának megjelenítése."""
+    if not any(v for v in st.session_state.patient_data.values() if v):
+        return
     
-    # --- Medline PDF Letöltés ---
+    data = st.session_state.patient_data
+    
+    with st.expander("📊 Összegyűjtött adatok", expanded=False):
+        col1, col2 = st.columns(2)
+        
+        with col1:
+            if data.get('age'):
+                st.write(f"**Életkor:** {data['age']} év")
+            if data.get('gender'):
+                st.write(f"**Nem:** {data['gender']}")
+            if data.get('duration'):
+                st.write(f"**Időtartam:** {data['duration']}")
+            if data.get('severity'):
+                st.write(f"**Súlyosság:** {data['severity']}")
+        
+        with col2:
+            if data.get('symptoms'):
+                st.write(f"**Tünetek:** {', '.join(data['symptoms'])}")
+            if data.get('existing_conditions'):
+                st.write(f"**Betegségek:** {', '.join(data['existing_conditions'])}")
+            if data.get('medications'):
+                st.write(f"**Gyógyszerek:** {', '.join(data['medications'])}")
+
+def create_medical_display():
+    """Teljes orvosi megjelenítő komponens."""
+    # Orvosi összefoglaló (csak ha kész az értékelés)
+    display_medical_summary()
+
+
+'''
+# --- Medline PDF Letöltés ---
     with tabs[2]:
         if st.session_state.get('medline_topics') and len(st.session_state.medline_topics) > 0:
             st.markdown("---")
@@ -147,9 +315,11 @@ def display_medical_summary():
                 st.session_state.medline_downloaded_pdfs = []
                 st.rerun()
 
-    # --- RAG Elemzés ---
-    with tabs[3]:
-        if st.session_state.get('medline_downloaded_pdfs'):
+#############
+                
+                PUBMED
+
+if st.session_state.get('medline_downloaded_pdfs'):
             rag_results = st.session_state.get('rag_analysis_results')
 
             # Ha még nincs eredmény, akkor mutassuk a gombot
@@ -172,7 +342,7 @@ def display_medical_summary():
                 st.success(f"ℹ️ {rag_results.get('additional_info', 'Nincs információ')}")
                 st.markdown("---")
 
-                '''
+
                 # Letöltési lehetőség JSON-ként
                 if rag_results.get('timestamp'):
                     st.download_button(
@@ -181,111 +351,9 @@ def display_medical_summary():
                         file_name=f"{st.session_state.get('case_id','case')}_rag.json",
                         mime="application/json"
                     )
-                '''
+
         else:
             st.warning("Előbb töltsd le a Medline PDF-eket a Medline fülön.")
-
-
-    # --- PubMed Elemzés ---
-    with tabs[4]:
-        pubmed_results = st.session_state.get('pubmed_analysis_results')
-        if not pubmed_results:
-            if st.session_state.get('rag_analysis_results'):
-                st.markdown("### 🔬 PubMed Mélykutatás")
-                st.info("Tudományos publikációk elemzése a PubMed adatbázisból.")
-                if st.button("🔬 Kutatás indítása", type="primary", key="start_pubmed_analysis"):
-                    from pubmed_integration import run_pubmed_analysis
-                    patient_data_for_pubmed = prepare_patient_data_for_analysis()
-                    pubmed_results = run_pubmed_analysis(
-                        patient_data=patient_data_for_pubmed,
-                        rag_results=st.session_state.get('rag_analysis_results')
-                    )
-                    st.session_state['pubmed_analysis_results'] = pubmed_results
-                    st.rerun()
-            else:
-                st.warning("Előbb futtasd a RAG elemzést a RAG fülön.")
-        else:
-            st.markdown("### 🧠 PubMed Kutatás Eredménye")
-            st.success(f"📚 1. __Legfrissebb kutatási eredmények:__ {pubmed_results.get('research_findings', 'Nincs információ')}")
-            st.success(f"💊 2. __Ajánlott kezelési módszerek:__ {pubmed_results.get('treatment_methods', 'Nincs információ')}")
-            st.success(f"📋 3. __Klinikai irányelvek:__ {pubmed_results.get('clinical_guidelines', 'Nincs információ')}")
-            st.success(f"📈 4. __Prognózis és kilátások:__ {pubmed_results.get('prognosis', 'Nincs információ')}")
-            st.success(f"🔍 5. __További javasolt vizsgálatok:__ {pubmed_results.get('further_tests', 'Nincs információ')}")
-            st.markdown("---")
-            
-    # --- Időpontfoglalás ---
-    with tabs[5]:
-        integrate_appointment_booking(
-            st.session_state.gpt_specialist_advice,
-            st.session_state.patient_data,
-            st.session_state.diagnosis
-        )
-
-    # --- Páciens adatok és Chat előzmények ---
-    with tabs[6]:
-        st.markdown("### 💬 Chat Előzmények")
-        if any(v for v in st.session_state.patient_data.values() if v):
-            with st.expander("📊 Összegyűjtött adatok", expanded=True):
-                col1, col2 = st.columns(2)
-                with col1:
-                    data = st.session_state.patient_data
-                    if data.get('age'):
-                        st.write(f"**Életkor:** {data['age']} év")
-                    if data.get('gender'):
-                        st.write(f"**Nem:** {data['gender']}")
-                    if data.get('duration'):
-                        st.write(f"**Időtartam:** {data['duration']}")
-                    if data.get('severity'):
-                        st.write(f"**Súlyosság:** {data['severity']}\n")
-                with col2:
-                    if data.get('symptoms'):
-                        st.write(f"**Tünetek:** {', '.join(data['symptoms'])}")
-                    if data.get('existing_conditions'):
-                        st.write(f"**Betegségek:** {', '.join(data['existing_conditions'])}")
-                    if data.get('medications'):
-                        st.write(f"**Gyógyszerek:** {', '.join(data['medications'])}")
-        else:
-            st.info("Nincsenek elérhető páciensek adatok még.")
-
-        for message in st.session_state.chat_history:
-            with st.chat_message(message["role"]):
-                st.markdown(message["content"])
-        st.markdown("---")
-
-    with tabs[7]:
-        display_data_overview()
-        display_appointments_table()
-
-
-def display_patient_data_summary():
-    """Páciens adatok összefoglalójának megjelenítése."""
-    if not any(v for v in st.session_state.patient_data.values() if v):
-        return
-    
-    data = st.session_state.patient_data
-    
-    with st.expander("📊 Összegyűjtött adatok", expanded=False):
-        col1, col2 = st.columns(2)
-        
-        with col1:
-            if data.get('age'):
-                st.write(f"**Életkor:** {data['age']} év")
-            if data.get('gender'):
-                st.write(f"**Nem:** {data['gender']}")
-            if data.get('duration'):
-                st.write(f"**Időtartam:** {data['duration']}")
-            if data.get('severity'):
-                st.write(f"**Súlyosság:** {data['severity']}")
-        
-        with col2:
-            if data.get('symptoms'):
-                st.write(f"**Tünetek:** {', '.join(data['symptoms'])}")
-            if data.get('existing_conditions'):
-                st.write(f"**Betegségek:** {', '.join(data['existing_conditions'])}")
-            if data.get('medications'):
-                st.write(f"**Gyógyszerek:** {', '.join(data['medications'])}")
-
-def create_medical_display():
-    """Teljes orvosi megjelenítő komponens."""
-    # Orvosi összefoglaló (csak ha kész az értékelés)
-    display_medical_summary()
+                
+                
+                '''

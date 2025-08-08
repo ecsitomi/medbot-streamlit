@@ -24,7 +24,7 @@ STREAMLIT_CONFIG = {
     "page_title": "Egészségügyi Chatbot",
     "page_icon": "🩺",
     "layout": "wide",
-    "initial_sidebar_state": "auto"
+    "initial_sidebar_state": "collapsed"
 }
 
 # Tool schema az új OpenAI formátumban - JAVÍTOTT VERZIÓ
