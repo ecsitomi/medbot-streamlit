@@ -622,11 +622,11 @@ def run_pubmed_analysis(patient_data: Dict[str, Any],
             return analyzer._create_empty_result()
         
         # 4. Eredmények elemzése
-        with st.spinner("🤖 Publikációk elemzése..."):
-            analysis_results = analyzer.analyze_pubmed_results(
-                pubmed_results, 
-                patient_data,
-                rag_results
+        #with st.spinner("🤖 Publikációk elemzése..."):
+        analysis_results = analyzer.analyze_pubmed_results(
+            pubmed_results, 
+            patient_data,
+            rag_results
         )
         '''
         st.info("🤖 Publikációk elemzése és magyar nyelvű összefoglaló készítése...")
@@ -639,11 +639,11 @@ def run_pubmed_analysis(patient_data: Dict[str, Any],
 
         # 5. Eredmények mentése
         save_path = analyzer.save_results(analysis_results, patient_data)
-        if save_path:
-            st.success(f"💾 Eredmények elmentve: {Path(save_path).name}")
+        #if save_path:
+         #   st.success(f"💾 Eredmények elmentve: {Path(save_path).name}")
         
         # 6. Eredmények megjelenítése
-        display_pubmed_results(analysis_results, save_path)
+        #display_pubmed_results(analysis_results, save_path)
         
         return analysis_results
         

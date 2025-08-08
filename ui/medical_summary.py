@@ -157,19 +157,20 @@ def display_medical_summary():
             if st.session_state.get('rag_analysis_results'):
                 st.markdown("### 🔬 PubMed Mélykutatás")
                 st.info("Tudományos publikációk elemzése a PubMed adatbázisból.")
-                if st.button("🔬 Kutatás indítása", type="primary", key="start_pubmed_analysis"):
-                    from pubmed_integration import run_pubmed_analysis
-                    patient_data_for_pubmed = prepare_patient_data_for_analysis()
-                    pubmed_results = run_pubmed_analysis(
-                        patient_data=patient_data_for_pubmed,
-                        rag_results=st.session_state.get('rag_analysis_results')
-                    )
-                    st.session_state['pubmed_analysis_results'] = pubmed_results
-                    st.rerun()
+                if st.button("🔍 Kutatás indítása", type="primary", key="start_pubmed_analysis"):
+                    with st.spinner("🔬 Publikációk elemzése..."):
+                        from pubmed_integration import run_pubmed_analysis
+                        patient_data_for_pubmed = prepare_patient_data_for_analysis()
+                        pubmed_results = run_pubmed_analysis(
+                            patient_data=patient_data_for_pubmed,
+                            rag_results=st.session_state.get('rag_analysis_results')
+                        )
+                        st.session_state['pubmed_analysis_results'] = pubmed_results
+                        st.rerun()
             else:
                 st.warning("Előbb futtasd a RAG elemzést a RAG fülön.")
         else:
-            st.markdown("### 🧠 PubMed Kutatás Eredménye")
+            st.markdown("### 🔬 PubMed Kutatás Eredménye")
             st.success(f"📚 1. __Legfrissebb kutatási eredmények:__ {pubmed_results.get('research_findings', 'Nincs információ')}")
             st.success(f"💊 2. __Ajánlott kezelési módszerek:__ {pubmed_results.get('treatment_methods', 'Nincs információ')}")
             st.success(f"📋 3. __Klinikai irányelvek:__ {pubmed_results.get('clinical_guidelines', 'Nincs információ')}")
