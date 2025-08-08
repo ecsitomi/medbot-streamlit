@@ -110,7 +110,7 @@ class MedlineUI:
         """Modern kártya alapú témamegjelenítés - 3 oszlopos grid elrendezésben"""
         
         # Grid elrendezés - 3 oszlop
-        num_cols = 3
+        num_cols = 2
         topics_to_display = topics[:max_topics]
         num_topics = len(topics_to_display)
         
@@ -139,10 +139,6 @@ class MedlineUI:
                         # Címsor
                         st.markdown(f"### 📖 {i}. {topic.title}")
                         
-                        # Link gomb
-                        if topic.url:
-                            st.link_button("🔗", topic.url, help="Medline Plus oldal megnyitása")
-                        
                         # Rövid összefoglaló elegáns dobozban
                         if topic.snippet:
                             st.markdown(f"""
@@ -163,7 +159,9 @@ class MedlineUI:
                                 self._display_modern_topic_details(topic)
                         
                         st.markdown("</div>", unsafe_allow_html=True)
-                        
+                        # Link gomb
+                        if topic.url:
+                            st.link_button(f"🔗 Forrás megtekintése", topic.url, help=f"Medline Plus {topic.title} megnyitása")
                         # Margó a kártyák között
                         st.markdown("<br>", unsafe_allow_html=True)
                         '''
