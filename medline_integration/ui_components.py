@@ -52,43 +52,32 @@ class MedlineUI:
         """, unsafe_allow_html=True)
         
         # Főcím modern stílussal
-        col1, col2 = st.columns([5, 1])
-        with col1:
-            st.markdown("## 🏥 **Medline Plus** Egészségügyi Könyvtár")
-        with col2:
-            # Nyelv indikátor
-            lang_badge = "🇺🇸 EN" if language == "en" else "🇪🇸 ES"
-            st.markdown(f"### {lang_badge}")
-        
-        # Keresési információ modern kártyán
-        with st.container():
-            search_terms = self._prepare_search_terms(diagnosis, symptoms)
-            if search_terms:
-                st.info(f"🔍 **Keresési kulcsszavak:** {' • '.join(search_terms)}")
-        
-        if not search_terms:
-            st.warning("⚠️ Nincs megfelelő keresési kifejezés a Medline kereséshez.")
-            return
-        
-        # Betöltés modern spinnerrel
-        with st.spinner("🔄 Medline Plus adatbázis lekérdezése..."):
-            topics = self._load_medline_data(search_terms, max_topics, language)
-        
+        st.markdown("## 🏥 **Medline Plus** Egészségügyi Könyvtár")
+        st.caption(f"🏛️ Forrás: National Library of Medicine")
+              
+        search_terms = self._prepare_search_terms(diagnosis, symptoms)
+        topics = self._load_medline_data(search_terms, max_topics, language)
+    
         if not topics:
             st.error("❌ Nem találhatók releváns Medline Plus információk.")
             return
         
-        # Találatok összefoglaló kártya
-        self._display_results_summary(topics, max_topics)
-        
         # Modern témakártyák megjelenítése
         self._display_modern_topic_cards(topics, max_topics)
         
+        # Találatok összefoglaló kártya
+        self._display_results_summary(topics, max_topics)
+
+        # Keresési információ modern kártyán  
+        if search_terms:
+            st.info(f"🔍 **Keresési kulcsszavak:** {' • '.join(search_terms)}")
+
         # Modern disclaimer
         self._display_modern_disclaimer()
     
     def _display_results_summary(self, topics: List[MedlineTopicSummary], max_topics: int):
         """Találatok összefoglaló kártya"""
+        st.markdown("---")
         avg_relevance = sum(t.relevance_score for t in topics[:max_topics]) / min(len(topics), max_topics)
         
         # Összefoglaló metrikák
@@ -115,10 +104,69 @@ class MedlineUI:
                 "🎯 Legjobb egyezés",
                 f"{top_score:.1f}",
                 delta="pont"
-            )
-        
-        st.markdown("---")
+            )   
     
+    def _display_modern_topic_cards(self, topics: List[MedlineTopicSummary], max_topics: int):
+        """Modern kártya alapú témamegjelenítés - 3 oszlopos grid elrendezésben"""
+        
+        # Grid elrendezés - 3 oszlop
+        num_cols = 3
+        topics_to_display = topics[:max_topics]
+        num_topics = len(topics_to_display)
+        
+        # Sorok számának kiszámítása
+        num_rows = (num_topics + num_cols - 1) // num_cols
+        
+        # Grid létrehozása és feltöltése
+        for row in range(num_rows):
+            cols = st.columns(num_cols)
+            
+            for col_idx in range(num_cols):
+                topic_idx = row * num_cols + col_idx
+                
+                # Ha van még megjelenítendő topic
+                if topic_idx < num_topics:
+                    topic = topics_to_display[topic_idx]
+                    i = topic_idx + 1
+                    
+                    with cols[col_idx]:
+                        # Az eredeti kód kártya tartalma
+                        relevance_level = self._get_relevance_level(topic.relevance_score)
+                        relevance_color = self._get_relevance_color_hex(relevance_level)
+                        
+                        st.markdown("---")
+                        
+                        # Címsor
+                        st.markdown(f"### 📖 {i}. {topic.title}")
+                        
+                        # Link gomb
+                        if topic.url:
+                            st.link_button("🔗", topic.url, help="Medline Plus oldal megnyitása")
+                        
+                        # Rövid összefoglaló elegáns dobozban
+                        if topic.snippet:
+                            st.markdown(f"""
+                                <div style="
+                                    background-color: rgba(240, 240, 240, 0.3);
+                                    padding: 12px;
+                                    border-radius: 8px;
+                                    margin: 10px 0;
+                                    font-style: italic;
+                                ">
+                                📝 {topic.snippet}
+                                </div>
+                            """, unsafe_allow_html=True)
+                        
+                        # Modern részletek megjelenítés tabs használatával
+                        if topic.summary or topic.groups or topic.mesh_terms:
+                            with st.expander(f"🔍 További információk", expanded=False):
+                                self._display_modern_topic_details(topic)
+                        
+                        st.markdown("</div>", unsafe_allow_html=True)
+                        
+                        # Margó a kártyák között
+                        st.markdown("<br>", unsafe_allow_html=True)
+                        '''
     def _display_modern_topic_cards(self, topics: List[MedlineTopicSummary], max_topics: int):
         """Modern kártya alapú témamegjelenítés"""
         
@@ -126,62 +174,46 @@ class MedlineUI:
             # Kártya container színes kerettel
             relevance_level = self._get_relevance_level(topic.relevance_score)
             relevance_color = self._get_relevance_color_hex(relevance_level)
+        
+            st.markdown("---")
+            # Kártya fejléc
+            header_col1, header_col2, header_col3 = st.columns([6, 2, 1])
             
-            # Modern kártya színes fejléccel
-            with st.container():
-                # Fejléc színes sávval
+            with header_col1:
+                st.markdown(f"### 📖 {i}. {topic.title}")
+                
+            with header_col2:
+                pass
+            
+            with header_col3:
+                if topic.url:
+                    st.link_button("🔗", topic.url, help="Medline Plus oldal megnyitása")
+            
+            # Rövid összefoglaló elegáns dobozban
+            if topic.snippet:
                 st.markdown(f"""
                     <div style="
-                        border-left: 4px solid {relevance_color};
-                        padding-left: 15px;
-                        margin-bottom: 20px;
-                        background: linear-gradient(to right, rgba(255,255,255,0.05), transparent);
-                        border-radius: 5px;
-                        padding: 15px;
+                        background-color: rgba(240, 240, 240, 0.3);
+                        padding: 12px;
+                        border-radius: 8px;
+                        margin: 10px 0;
+                        font-style: italic;
                     ">
+                    📝 {topic.snippet}
+                    </div>
                 """, unsafe_allow_html=True)
-                
-                # Kártya fejléc
-                header_col1, header_col2, header_col3 = st.columns([6, 2, 1])
-                
-                with header_col1:
-                    st.markdown(f"### 📖 {i}. {topic.title}")
-                    if topic.organization:
-                        st.caption(f"🏛️ Forrás: {topic.organization}")
-                
-                with header_col2:
-                    # Vizuális relevancia indikátor
-                    self._display_relevance_indicator(topic.relevance_score)
-                
-                with header_col3:
-                    if topic.url:
-                        st.link_button("🔗", topic.url, help="Medline Plus oldal megnyitása")
-                
-                # Rövid összefoglaló elegáns dobozban
-                if topic.snippet:
-                    st.markdown(f"""
-                        <div style="
-                            background-color: rgba(240, 240, 240, 0.3);
-                            padding: 12px;
-                            border-radius: 8px;
-                            margin: 10px 0;
-                            font-style: italic;
-                        ">
-                        📝 {topic.snippet}
-                        </div>
-                    """, unsafe_allow_html=True)
-                
-                # Modern részletek megjelenítés tabs használatával
-                if topic.summary or topic.groups or topic.mesh_terms:
-                    with st.expander(f"🔍 Részletes információk", expanded=False):
-                        self._display_modern_topic_details(topic)
-                
-                st.markdown("</div>", unsafe_allow_html=True)
-                
-                # Szeparátor következő kártyáig
-                if i < min(len(topics), max_topics):
-                    st.markdown("<br>", unsafe_allow_html=True)
-    
+            
+            # Modern részletek megjelenítés tabs használatával
+            if topic.summary or topic.groups or topic.mesh_terms:
+                with st.expander(f"🔍 További információk", expanded=False):
+                    self._display_modern_topic_details(topic)
+            
+            st.markdown("</div>", unsafe_allow_html=True)
+            
+            # Szeparátor következő kártyáig
+            if i < min(len(topics), max_topics):
+                st.markdown("<br>", unsafe_allow_html=True)
+    '''
     def _display_modern_topic_details(self, topic: MedlineTopicSummary):
         """Modern részletek megjelenítés tabokkal"""
         
