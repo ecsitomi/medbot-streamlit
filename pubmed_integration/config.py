@@ -12,15 +12,15 @@ PUBMED_DATA_DIR.mkdir(exist_ok=True)
 PUBMED_CONFIG = {
     # Keresési beállítások
     "search": {
-        "max_results": 5,  # Maximum hány publikációt kérjünk le
-        "min_relevance_score": 0.7,
+        "max_results": 20,  # Maximum hány publikációt kérjünk le
+        "min_relevance_score": 0.6,
     },
     
     # LLM beállítások
     "llm": {
-        "model": "gpt-4",
-        "temperature": 0.2,
-        "max_tokens": 2000
+        "model": "gpt-5",
+        "temperature": 0.5,
+        "max_tokens": 3000
     },
     
     # Nyelvi beállítások

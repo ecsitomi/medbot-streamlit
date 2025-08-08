@@ -83,9 +83,9 @@ class RAGAnalyzer:
             
             self.llm = ChatOpenAI(
                 openai_api_key=api_key,
-                model="gpt-4",
-                temperature=0.1,
-                max_tokens=1500
+                model="gpt-5",
+                temperature=0.5,
+                max_tokens=3000
             )
             
             # Vector store betöltése vagy létrehozása

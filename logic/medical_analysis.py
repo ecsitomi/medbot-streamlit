@@ -25,11 +25,11 @@ def triage_decision(data):
 
     # Sürgős esetek
     if "mellkasi fájdalom" in symptoms or "légszomj" in symptoms:
-        return "🔴 A tünetei alapján azonnali orvosi ellátás javasolt."
+        return "🔴 A tünetei alapján azonnali egészségügyi ellátás javasolt."
     
     # Közepes sürgősség
     elif severity == "súlyos" or ("láz" in symptoms and "torokfájás" in symptoms and duration_days > 3):
-        return "🟡 Javasolt orvossal konzultálni."
+        return "🟡 Javasolt orvossal konzultálnia."
     
     # Enyhe esetek
     else:

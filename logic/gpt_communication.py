@@ -16,7 +16,7 @@ def generate_diagnosis(symptoms):
     try:
         client = get_openai_client()
         completion = client.chat.completions.create(
-            model="gpt-4",
+            model="gpt-5",
             messages=[
                 {"role": "system", "content": "Te egy egészségügyi asszisztens vagy, aki laikus tünetleírás alapján segít diagnózisban gondolkodni."},
                 {"role": "user", "content": prompt}
@@ -36,7 +36,7 @@ def generate_alt_therapy(symptoms, diagnosis):
     try:
         client = get_openai_client()
         completion = client.chat.completions.create(
-            model="gpt-4",
+            model="gpt-5",
             messages=[
                 {"role": "system", "content": "Te egy egészségügyi asszisztens vagy, aki természetes enyhítő javaslatokat fogalmaz meg tünetek és diagnózis alapján."},
                 {"role": "user", "content": prompt}
@@ -56,7 +56,7 @@ def generate_specialist_advice(symptoms, diagnosis):
     try:
         client = get_openai_client()
         completion = client.chat.completions.create(
-            model="gpt-4",
+            model="gpt-5",
             messages=[
                 {"role": "system", "content": "Te egy egészségügyi asszisztens vagy, aki megfelelő szakorvost javasol a tünetek és feltételezett diagnózis alapján."},
                 {"role": "user", "content": prompt}
@@ -128,9 +128,9 @@ def get_next_question_gpt():
         priority_field = missing_data[0]
         
         # GPT prompt összeállítása
-        system_prompt = """Te egy tapasztalt egészségügyi asszisztens vagy, aki empátiával és szakértelemmel tesz fel kérdéseket a pácienseknek.
+        system_prompt = """Te egy tapasztalt egészségügyi asszisztens vagy, aki magázódva, de empátiával és szakértelemmel tesz fel kérdéseket a pácienseknek.
 
-FELADATOD: Természetes, barátságos kérdést generálni, ami pontosan EGY hiányzó adatot gyűjt be.
+FELADATOD: Természetes, barátságos kérdést generálni, ami pontosan EGY hiányzó adatot gyűjt be. Magázódj a pácienssel, és használd a kontextust a kérdéshez.
 
 SZABÁLYOK:
 1. Csak EGY adatot kérdezz meg egyszerre
@@ -138,7 +138,7 @@ SZABÁLYOK:
 3. Használd a kontextust és a korábbi beszélgetést
 4. Rövid, érthető kérdést tégy fel
 5. Ha szükséges, adj példákat a válaszhoz
-6. Magyar nyelven válaszolj
+6. Magyar nyelven válaszolj magázódva
 
 ADATMEZŐK MAGYARÁZATA:
 - symptoms: Tünetek (fájdalom, diszkomfort, stb.)
@@ -146,7 +146,7 @@ ADATMEZŐK MAGYARÁZATA:
 - duration: Tünetek időtartama (mióta tart)
 - severity: Súlyosság (enyhe/súlyos)
 - age: Életkor
-- gender: Nem (férfi/nő)
+- gender: Biológiai nem (férfi/nő)
 - existing_conditions: Krónikus betegségek, allergiák
 - medications: Szedett gyógyszerek, vitaminok"""
 
@@ -159,18 +159,18 @@ Legutóbbi beszélgetés:
 
 KÖVETKEZŐ HIÁNYZÓ ADAT: {priority_field}
 
-Kérlek, tegyél fel EGY természetes kérdést, ami ezt az adatot gyűjti be. A kérdés legyen empatikus és a kontextushoz illő."""
+Kérlek, tegyél fel EGY természetes kérdést, ami ezt az adatot gyűjti be. A kérdés legyen empatikus és a kontextushoz illő. Magázódj!"""
 
         # GPT hívás
         client = get_openai_client()
         response = client.chat.completions.create(
-            model="gpt-4",
+            model="gpt-5",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ],
-            temperature=0.7,
-            max_tokens=200
+            temperature=0.8,
+            max_tokens=300
         )
         
         generated_question = response.choices[0].message.content.strip()
@@ -204,7 +204,7 @@ def get_next_question_static():
     elif not data.get("age"):
         return "Hány éves Ön? Ez segít a pontosabb értékelésben."
     elif not data.get("gender"):
-        return "Kérem, adja meg a nemét (férfi/nő). Ez is fontos az értékeléshez."
+        return "Kérem, adja meg a biológia nemét (férfi/nő). Ez is fontos az értékeléshez."
     elif not data.get("existing_conditions"):
         return "Vannak-e ismert krónikus betegségei, allergiái vagy egyéb egészségügyi problémái? Ha nincs, írja be: 'nincs'."
     elif not data.get("medications"):

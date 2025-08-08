@@ -26,7 +26,7 @@ class MedlineUI:
         if not diagnosis and not symptoms:
             return
         
-        st.markdown("---")
+        
         st.markdown("### 🏥 Medline Plus - Egészségügyi Információk")
         
         # Keresési kifejezések előkészítése

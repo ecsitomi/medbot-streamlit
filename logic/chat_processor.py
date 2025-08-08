@@ -191,13 +191,13 @@ def get_next_question_with_reasoning():
                 from core import get_openai_client
                 client = get_openai_client()
                 response = client.chat.completions.create(
-                    model="gpt-4",
+                    model="gpt-5",
                     messages=[
                         {"role": "system", "content": prompt_data["system"]},
                         {"role": "user", "content": prompt_data["user"]}
                     ],
-                    temperature=0.7,
-                    max_tokens=200
+                    temperature=0.8,
+                    max_tokens=300
                 )
                 
                 generated_question = response.choices[0].message.content.strip()
@@ -229,7 +229,7 @@ def get_next_question_with_reasoning():
             from core import get_openai_client
             client = get_openai_client()
             response = client.chat.completions.create(
-                model="gpt-4",
+                model="gpt-5",
                 messages=[
                     {"role": "system", "content": prompt_data["system"]},
                     {"role": "user", "content": prompt_data["user"]}

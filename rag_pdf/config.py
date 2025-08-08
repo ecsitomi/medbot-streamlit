@@ -21,8 +21,8 @@ RAG_CONFIG = {
     # Embedding beállítások
     "embedding": {
         "model": "text-embedding-3-small",
-        "chunk_size": 1000,
-        "chunk_overlap": 200,
+        "chunk_size": 500,
+        "chunk_overlap": 150,
     },
     
     # Chroma beállítások
@@ -33,15 +33,15 @@ RAG_CONFIG = {
     
     # LLM beállítások
     "llm": {
-        "model": "gpt-4",
-        "temperature": 0.3,
-        "max_tokens": 2000
+        "model": "gpt-5",
+        "temperature": 0.1,
+        "max_tokens": 3000
     },
     
     # RAG beállítások
     "rag": {
-        "top_k": 5,  # Hány releváns chunk-ot használjon
-        "score_threshold": 0.7  # Relevancia küszöb
+        "top_k": 10,  # Hány releváns chunk-ot használjon
+        "score_threshold": 0.6  # Relevancia küszöb
     },
     
     # Könyvtárak

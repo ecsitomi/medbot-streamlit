@@ -45,7 +45,7 @@ class PubMedAnalyzer:
         # Fordító LLM (kisebb modell a költséghatékonyság miatt)
         self.translator = ChatOpenAI(
             openai_api_key=self.api_key,
-            model="gpt-3.5-turbo",
+            model="gpt-5",
             temperature=0
         )
     

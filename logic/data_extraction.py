@@ -320,7 +320,7 @@ def extract_medical_info_with_gpt(user_input):
     try:
         client = get_openai_client()
         response = client.chat.completions.create(
-            model="gpt-4",
+            model="gpt-5",
             messages=[
                 {"role": "system", "content": """Te egy egészségügyi asszisztens vagy. Kinyered az egészségügyi adatokat a szövegből.
 

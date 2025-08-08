@@ -40,7 +40,7 @@ DATA_FIELD_MAPPINGS = {
     },
     "gender": {
         "display_name": "Nem",
-        "description": "Nem (férfi/nő)",
+        "description": "Biológiai Nem (férfi/nő)",
         "examples": "férfi, nő",
         "question_style": "simple"
     },
@@ -91,7 +91,7 @@ def build_system_prompt(tone="friendly", language="hu"):
     Returns:
         str: A system prompt
     """
-    base_prompt = """Te egy tapasztalt egészségügyi asszisztens vagy, aki empátiával és szakértelemmel tesz fel kérdéseket a pácienseknek.
+    base_prompt = """Te egy tapasztalt egészségügyi asszisztens vagy, aki empátiával és szakértelemmel tesz fel kérdéseket a pácienseknek. Magázódva beszélj.
 
 FELADATOD: Természetes, barátságos kérdést generálni, ami pontosan EGY hiányzó adatot gyűjt be.
 
@@ -101,24 +101,24 @@ SZABÁLYOK:
 3. Használd a kontextust és a korábbi beszélgetést
 4. Rövid, érthető kérdést tégy fel
 5. Ha szükséges, adj példákat a válaszhoz
-6. Magyar nyelven válaszolj
+6. Magyar nyelven válaszolj. Magázódva beszélj
 
 ADATMEZŐK MAGYARÁZATA:
 - symptoms: Tünetek (fájdalom, diszkomfort, stb.)
 - additional_symptoms: További tünetek keresése az első után
 - duration: Tünetek időtartama (mióta tart)
-- severity: Súlyosság (enyhe/súlyos)
+- severity: Súlyosság (enyhe/közepes/súlyos)
 - age: Életkor
 - gender: Nem (férfi/nő)
 - existing_conditions: Krónikus betegségek, allergiák
 - medications: Szedett gyógyszerek, vitaminok"""
 
     if tone == "professional":
-        base_prompt += "\n\nHANGNEM: Szakmai, de barátságos. Használj orvosi terminológiát, de maradj érthető."
+        base_prompt += "\n\nHANGNEM: Szakmai, de barátságos. Használj orvosi terminológiát, de maradj érthető. Magázódva beszélj"
     elif tone == "empathetic":
-        base_prompt += "\n\nHANGNEM: Különösen empatikus és támogató. Hangsúlyozd, hogy érted a páciens helyzetét."
+        base_prompt += "\n\nHANGNEM: Különösen empatikus és támogató. Hangsúlyozd, hogy érted a páciens helyzetét. Magázódva beszélj vele."
     else:  # friendly (default)
-        base_prompt += "\n\nHANGNEM: Természetes, barátságos beszélgetés stílus. Kerüld a túl formális nyelvet."
+        base_prompt += "\n\nHANGNEM: Természetes, barátságos beszélgetés stílus. Kerüld a túl formális nyelvet. Magázódva beszélj"
     
     return base_prompt
 
@@ -172,7 +172,7 @@ def build_context_summary(current_data, conversation_history=None):
     
     return "\n".join(summary_parts)
 
-def build_field_specific_prompt(field_name, current_data, tone="friendly"):
+def build_field_specific_prompt(field_name, current_data, tone="empathetic"):
     """
     Mezőspecifikus prompt rész építése.
     
@@ -185,7 +185,7 @@ def build_field_specific_prompt(field_name, current_data, tone="friendly"):
         str: Mezőspecifikus prompt instrukciók
     """
     field_info = DATA_FIELD_MAPPINGS.get(field_name, {})
-    tone_settings = TONE_SETTINGS.get(tone, TONE_SETTINGS["friendly"])
+    tone_settings = TONE_SETTINGS.get(tone, TONE_SETTINGS["empathetic"])
     
     if not field_info:
         return f"KÖVETKEZŐ HIÁNYZÓ ADAT: {field_name}\n\nKérlek, tegyél fel EGY természetes kérdést, ami ezt az adatot gyűjti be."
@@ -221,11 +221,11 @@ def build_field_specific_prompt(field_name, current_data, tone="friendly"):
     if encouragement and field_name not in ["existing_conditions", "medications"]:
         prompt_parts.append(f"Emlékeztesd a páciensre: {encouragement}")
     
-    prompt_parts.append("\nKérlek, tegyél fel EGY természetes kérdést, ami ezt az adatot gyűjti be. A kérdés legyen empatikus és a kontextushoz illő.")
+    prompt_parts.append("\nKérlek, tegyél fel EGY természetes kérdést, ami ezt az adatot gyűjti be. A kérdés legyen empatikus és a kontextushoz illő. Magázódva beszélj.")
     
     return "\n".join(prompt_parts)
 
-def build_complete_prompt(field_name, current_data, conversation_history=None, tone="friendly", language="hu"):
+def build_complete_prompt(field_name, current_data, conversation_history=None, tone="empathetic", language="hu"):
     """
     Teljes GPT prompt összeállítása a következő kérdés generálásához.
     Kompatibilis a meglévő get_next_question_gpt() funkcióval.
@@ -255,7 +255,7 @@ def build_complete_prompt(field_name, current_data, conversation_history=None, t
         "user": user_prompt
     }
 
-def build_reasoning_question_prompt(reasoning_question, current_data, tone="friendly", language="hu"):
+def build_reasoning_question_prompt(reasoning_question, current_data, tone="empathetic", language="hu"):
     """
     Reasoning kérdések esetén speciális prompt (symptom_graph.py-ból jövő kérdésekhez).
     
@@ -277,7 +277,8 @@ SZABÁLYOK:
 2. Légy empatikus és támogató
 3. Magyarázd meg röviden, miért fontos ez a kérdés
 4. Magyar nyelven válaszolj
-5. Kerüld a túl orvosi nyelvet"""
+5. Kerüld a túl orvosi nyelvet
+6. Magázódva beszélj"""
 
     tone_settings = TONE_SETTINGS.get(tone, TONE_SETTINGS["friendly"])
     
@@ -302,20 +303,20 @@ Használd ezt a hangnemet: {tone}"""
 def build_diagnosis_prompt(symptoms):
     """Diagnózis prompt építése (kompatibilis a generate_diagnosis()-szel)."""
     return {
-        "system": "Te egy egészségügyi asszisztens vagy, aki laikus tünetleírás alapján segít diagnózisban gondolkodni.",
-        "user": f"A következő tünetek alapján javasolj egy lehetséges laikus diagnózist röviden, magyarul: {', '.join(symptoms)}"
+        "system": "Te egy egészségügyi asszisztens vagy, aki laikus tünetleírás alapján segít diagnózisban gondolkodni. Magázódva válaszolj!",
+        "user": f"A következő tünetek alapján javasolj egy lehetséges laikus diagnózist röviden, magyarul, magázódva: {', '.join(symptoms)}"
     }
 
 def build_alt_therapy_prompt(symptoms, diagnosis):
     """Alternatív terápia prompt építése (kompatibilis a generate_alt_therapy()-vel)."""
     return {
-        "system": "Te egy egészségügyi asszisztens vagy, aki természetes enyhítő javaslatokat fogalmaz meg tünetek és diagnózis alapján.",
+        "system": "Te egy egészségügyi asszisztens vagy, aki természetes enyhítő javaslatokat fogalmaz meg tünetek és diagnózis alapján. Magázódva válaszolj!",
         "user": f"A következő tünetek és laikus diagnózis alapján javasolj alternatív (otthoni vagy természetes) enyhítő megoldásokat magyarul, röviden:\nTünetek: {', '.join(symptoms)}\nDiagnózis: {diagnosis}"
     }
 
 def build_specialist_advice_prompt(symptoms, diagnosis):
-    """Szakorvos javaslat prompt építése (kompatibilis a generate_specialist_advice()-vel)."""
+    """Szakorvos javaslat prompt építése (kompatibilis a generate_specialist_advice()-vel). Magázódva válaszolj!"""
     return {
-        "system": "Te egy egészségügyi asszisztens vagy, aki megfelelő szakorvost javasol a tünetek és feltételezett diagnózis alapján.",
-        "user": f"A következő tünetek és laikus diagnózis alapján javasolj szakorvost, akihez érdemes fordulni: {', '.join(symptoms)} — Diagnózis: {diagnosis}"
+        "system": "Te egy egészségügyi asszisztens vagy, aki megfelelő szakorvost javasol a tünetek és feltételezett diagnózis alapján. Magázódva válaszolj!",
+        "user": f"A következő tünetek és laikus diagnózis alapján javasolj szakorvost magázódva, akihez érdemes fordulni: {', '.join(symptoms)} — Diagnózis: {diagnosis}"
     }
