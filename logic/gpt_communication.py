@@ -12,13 +12,13 @@ def generate_diagnosis(symptoms):
     if not symptoms:
         return "Nincs elegendő tünet a diagnózishoz."
     
-    prompt = f"A következő tünetek alapján javasolj egy lehetséges laikus diagnózist röviden, magyarul: {', '.join(symptoms)}"
+    prompt = f"A következő tünetek alapján javasolj egy-két lehetséges laikus diagnózist röviden, magyarul: {', '.join(symptoms)}"
     try:
         client = get_openai_client()
         completion = client.chat.completions.create(
             model="gpt-5",
             messages=[
-                {"role": "system", "content": "Te egy egészségügyi asszisztens vagy, aki laikus tünetleírás alapján segít diagnózisban gondolkodni."},
+                {"role": "system", "content": "Te egy egészségügyi asszisztens vagy, aki laikus tünetleírás alapján segít egészségügyi diagnózisban gondolkodni. Magázódj a pácienssel!  "},
                 {"role": "user", "content": prompt}
             ]
         )
@@ -164,7 +164,7 @@ Kérlek, tegyél fel EGY természetes kérdést, ami ezt az adatot gyűjti be. A
         # GPT hívás
         client = get_openai_client()
         response = client.chat.completions.create(
-            model="gpt-5",
+            model="gpt-4",
             messages=[
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}

@@ -35,7 +35,7 @@ except ImportError:
 def translate_text(text: str, openai_api_key: str) -> str:
     if not text:
         return ""
-    llm = ChatOpenAI(openai_api_key=openai_api_key, temperature=0)
+    llm = ChatOpenAI(openai_api_key=openai_api_key, temperature=0.3)
     return llm.predict(f"Translate this Hungarian medical phrase to English: {text}").strip()
 
 def translate_list(items: List[str], openai_api_key: str) -> List[str]:
@@ -83,8 +83,8 @@ class RAGAnalyzer:
             
             self.llm = ChatOpenAI(
                 openai_api_key=api_key,
-                model="gpt-5",
-                temperature=0.5,
+                model="gpt-4",
+                temperature=0.1,
                 max_tokens=3000
             )
             

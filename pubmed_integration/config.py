@@ -18,8 +18,8 @@ PUBMED_CONFIG = {
     
     # LLM beállítások
     "llm": {
-        "model": "gpt-5",
-        "temperature": 0.5,
+        "model": "gpt-4",
+        "temperature": 0.1,
         "max_tokens": 3000
     },
     
