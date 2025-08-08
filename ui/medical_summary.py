@@ -113,33 +113,41 @@ def display_medical_summary():
 
     # --- RAG Elemzés ---
     with tabs[2]:
-        download_medline()  
-        
-        if st.session_state.get('medline_downloaded_pdfs'):
-            # Védett ellenőrzés a dupla futás ellen
-            rag_analysis_key = f"rag_completed_{hash(str(st.session_state.get('medline_downloaded_pdfs', [])))}"
-            
-            if not st.session_state.get('rag_analysis_results') and not st.session_state.get(rag_analysis_key, False):
-                try:
-                    from rag_pdf import run_rag_analysis
-                    patient_data_for_rag = prepare_patient_data_for_analysis()
-                    rag_results = run_rag_analysis(patient_data_for_rag)
-                    st.session_state['rag_analysis_results'] = rag_results
-                    st.session_state[rag_analysis_key] = True  # Megjelöli, hogy kész
-                except Exception as e:
-                    st.session_state['rag_analysis_error'] = str(e)
+        # Session state inicializálása, ha még nincs
+        if 'rag_analysis_started' not in st.session_state:
+            st.session_state['rag_analysis_started'] = False
 
-            # Eredmény megjelenítése
-            rag_results = st.session_state.get('rag_analysis_results')
-            if rag_results:
-                st.markdown("### 🧠 RAG Elemzés Eredménye")
-                st.success(f"📋 {rag_results.get('patient_condition', 'Nincs információ')}")
-                st.success(f"💊 {rag_results.get('symptom_management', 'Nincs információ')}")
-                st.success(f"👨‍⚕️ {rag_results.get('recommended_specialist', 'Nincs információ')}")
-                st.success(f"ℹ️ {rag_results.get('additional_info', 'Nincs információ')}")
-                st.markdown("---")
-        else:
-            st.warning("Előbb töltsd le a Medline PDF-eket a Medline fülön.")
+        # Gomb csak akkor jelenik meg, ha még nem indítottuk el az elemzést
+        if not st.session_state['rag_analysis_started']:
+            if st.button("🔍 RAG Elemzés indítása", type="primary", key="start_rag_analysis"):
+                # Megjelöljük, hogy elindítottuk az elemzést
+                st.session_state['rag_analysis_started'] = True
+                
+                # RAG modul importálása
+                with st.spinner("🧠 RAG elemzés folyamatban..."):
+                    download_medline()  # Letöltés indítása, ha még nem történt meg
+                    from rag_pdf import run_rag_analysis
+                    
+                    # ✅ JAVÍTÁS: Közös függvény használata
+                    patient_data_for_rag = prepare_patient_data_for_analysis()
+                    
+                    # RAG elemzés futtatása
+                    rag_results = run_rag_analysis(patient_data_for_rag)
+                    
+                    # Eredmények session state-be mentése
+                    st.session_state['rag_analysis_results'] = rag_results
+                    st.rerun()  # Újraindítjuk az oldalt, hogy megjelenjenek az eredmények
+            
+        # Eredmény megjelenítése
+        rag_results = st.session_state.get('rag_analysis_results')
+        if rag_results:
+            st.markdown("### 🧠 RAG Elemzés Eredménye")
+            st.success(f"📋 {rag_results.get('patient_condition', 'Nincs információ')}")
+            st.success(f"💊 {rag_results.get('symptom_management', 'Nincs információ')}")
+            st.success(f"👨‍⚕️ {rag_results.get('recommended_specialist', 'Nincs információ')}")
+            st.success(f"ℹ️ {rag_results.get('additional_info', 'Nincs információ')}")
+            st.markdown("---")
+
 
 
     # --- PubMed Elemzés ---

@@ -276,8 +276,8 @@ VÁLASZ MAGYARUL:
             print(f"🔍 RAG Query: {query}")
             
             # ✅ JAVÍTVA: Modern invoke használata predict helyett
-            with st.spinner("🧠 RAG elemzés folyamatban..."):
-                rag_response = self.retrieval_chain.invoke(query)
+            #with st.spinner("🧠 RAG elemzés folyamatban..."):
+            rag_response = self.retrieval_chain.invoke(query)
             
             print(f"📄 RAG Response: {rag_response[:200]}...")
             
@@ -527,7 +527,7 @@ def run_rag_analysis(patient_data: Dict[str, Any], openai_api_key: str = None) -
         save_paths = _save_rag_results(results, patient_data)
         
         # UI megjelenítés
-        _display_rag_results(results, save_paths)
+        #_display_rag_results(results, save_paths)
         
         return results
         
