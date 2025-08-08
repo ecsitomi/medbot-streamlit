@@ -196,8 +196,8 @@ def get_next_question_with_reasoning():
                         {"role": "system", "content": prompt_data["system"]},
                         {"role": "user", "content": prompt_data["user"]}
                     ],
-                    temperature=0.8,
-                    max_tokens=300
+                    temperature=0.7,
+                    max_tokens=250
                 )
                 
                 generated_question = response.choices[0].message.content.strip()
@@ -234,8 +234,8 @@ def get_next_question_with_reasoning():
                     {"role": "system", "content": prompt_data["system"]},
                     {"role": "user", "content": prompt_data["user"]}
                 ],
-                temperature=0.8,
-                max_tokens=300
+                temperature=0.7,
+                max_tokens=250
             )
             
             generated_question = response.choices[0].message.content.strip()

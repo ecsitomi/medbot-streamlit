@@ -169,8 +169,8 @@ Kérlek, tegyél fel EGY természetes kérdést, ami ezt az adatot gyűjti be. A
                 {"role": "system", "content": system_prompt},
                 {"role": "user", "content": user_prompt}
             ],
-            temperature=0.8,
-            max_tokens=300
+            temperature=0.7,
+            max_tokens=250
         )
         
         generated_question = response.choices[0].message.content.strip()

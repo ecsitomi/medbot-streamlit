@@ -12,8 +12,8 @@ PUBMED_DATA_DIR.mkdir(exist_ok=True)
 PUBMED_CONFIG = {
     # Keresési beállítások
     "search": {
-        "max_results": 20,  # Maximum hány publikációt kérjünk le
-        "min_relevance_score": 0.6,
+        "max_results": 500,  # Maximum hány publikációt kérjünk le
+        "min_relevance_score": 0.5,
     },
     
     # LLM beállítások
